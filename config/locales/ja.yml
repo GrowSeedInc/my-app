@@ -1,0 +1,34 @@
+ja:
+  equipment:
+    status:
+      available: "利用可能"
+      in_use: "貸出中"
+      repair: "修理中"
+      disposed: "廃棄"
+
+  activerecord:
+    models:
+      equipment: "備品"
+      loan: "貸出"
+      category: "カテゴリ"
+      user: "ユーザー"
+    attributes:
+      equipment:
+        name: "備品名"
+        management_number: "管理番号"
+        category: "カテゴリ"
+        total_count: "総数"
+        available_count: "貸出可能数"
+        status: "ステータス"
+        description: "説明"
+        low_stock_threshold: "在庫不足閾値"
+      loan:
+        start_date: "貸出開始日"
+        expected_return_date: "返却予定日"
+        actual_return_date: "実返却日"
+        status: "ステータス"
+      user:
+        email: "メールアドレス"
+        password: "パスワード"
+        name: "氏名"
+        role: "権限"

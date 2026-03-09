@@ -4,6 +4,7 @@ require_relative "../config/environment"
 abort("The Rails environment is running in production mode!") if Rails.env.production?
 require "rspec/rails"
 require "capybara/rspec"
+require "pundit/rspec"
 
 begin
   ActiveRecord::Migration.maintain_test_schema!
@@ -23,4 +24,5 @@ RSpec.configure do |config|
   config.include FactoryBot::Syntax::Methods
   config.include Devise::Test::IntegrationHelpers, type: :request
   config.include Devise::Test::ControllerHelpers,  type: :controller
+  config.include ActiveSupport::Testing::TimeHelpers
 end

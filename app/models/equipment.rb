@@ -5,6 +5,7 @@ class Equipment < ApplicationRecord
   self.discard_column = :discarded_at
 
   belongs_to :category, optional: true
+  has_many :loans
 
   enum :status, {
     available: "available",

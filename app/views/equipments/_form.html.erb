@@ -1,0 +1,87 @@
+<%= form_with model: equipment, class: "space-y-6" do |f| %>
+  <% if equipment.errors.any? %>
+    <div class="bg-red-50 border border-red-300 rounded-lg p-4">
+      <h3 class="text-sm font-medium text-red-800 mb-2">入力内容を確認してください</h3>
+      <ul class="list-disc list-inside text-sm text-red-700 space-y-1">
+        <% equipment.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.label :name, "備品名", class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= f.text_field :name,
+          class: "w-full border #{ equipment.errors[:name].any? ? 'border-red-500' : 'border-gray-300' } rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500",
+          placeholder: "例: ノートPC" %>
+    <% if equipment.errors[:name].any? %>
+      <p class="mt-1 text-xs text-red-600"><%= equipment.errors[:name].first %></p>
+    <% end %>
+  </div>
+
+  <div>
+    <%= f.label :management_number, "管理番号", class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= f.text_field :management_number,
+          class: "w-full border #{ equipment.errors[:management_number].any? ? 'border-red-500' : 'border-gray-300' } rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500",
+          placeholder: "例: EQ-001" %>
+    <% if equipment.errors[:management_number].any? %>
+      <p class="mt-1 text-xs text-red-600"><%= equipment.errors[:management_number].first %></p>
+    <% end %>
+  </div>
+
+  <div>
+    <%= f.label :category_id, "カテゴリ", class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= f.collection_select :category_id, Category.order(:name), :id, :name,
+          { include_blank: "カテゴリなし" },
+          class: "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" %>
+  </div>
+
+  <div class="grid grid-cols-2 gap-4">
+    <div>
+      <%= f.label :total_count, "総数", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= f.number_field :total_count, min: 0,
+            class: "w-full border #{ equipment.errors[:total_count].any? ? 'border-red-500' : 'border-gray-300' } rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" %>
+      <% if equipment.errors[:total_count].any? %>
+        <p class="mt-1 text-xs text-red-600"><%= equipment.errors[:total_count].first %></p>
+      <% end %>
+    </div>
+
+    <div>
+      <%= f.label :available_count, "貸出可能数", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= f.number_field :available_count, min: 0,
+            class: "w-full border #{ equipment.errors[:available_count].any? ? 'border-red-500' : 'border-gray-300' } rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" %>
+      <% if equipment.errors[:available_count].any? %>
+        <p class="mt-1 text-xs text-red-600"><%= equipment.errors[:available_count].first %></p>
+      <% end %>
+    </div>
+  </div>
+
+  <div>
+    <%= f.label :status, "ステータス", class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= f.select :status,
+          Equipment.statuses.keys.map { |s| [t("equipment.status.#{s}"), s] },
+          {},
+          class: "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" %>
+  </div>
+
+  <div>
+    <%= f.label :low_stock_threshold, "在庫不足閾値", class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <p class="text-xs text-gray-500 mb-1">貸出可能数がこの値を下回るとアラートを送信します</p>
+    <%= f.number_field :low_stock_threshold, min: 0,
+          class: "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" %>
+  </div>
+
+  <div>
+    <%= f.label :description, "説明", class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= f.text_area :description, rows: 3,
+          class: "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500",
+          placeholder: "備品の説明や注意事項など" %>
+  </div>
+
+  <div class="flex justify-end space-x-3">
+    <%= link_to "キャンセル", equipments_path, class: "px-4 py-2 text-sm text-gray-700 hover:text-gray-900" %>
+    <%= f.submit equipment.persisted? ? "更新する" : "登録する",
+          class: "bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-lg text-sm cursor-pointer" %>
+  </div>
+<% end %>
