@@ -1,0 +1,12 @@
+貸出申請受付のご確認
+
+<%= @user.name.presence || @user.email %> 様
+
+以下の備品の貸出申請を受け付けました。管理者が承認後、貸出が開始されます。
+
+備品名：<%= @equipment.name %>
+管理番号：<%= @equipment.management_number %>
+貸出開始日：<%= @loan.start_date.strftime("%Y/%m/%d") %>
+返却予定日：<%= @loan.expected_return_date.strftime("%Y/%m/%d") %>
+
+ご不明な点がございましたら、管理者までお問い合わせください。

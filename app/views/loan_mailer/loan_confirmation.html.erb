@@ -1,0 +1,26 @@
+<h2>貸出申請受付のご確認</h2>
+
+<p><%= @user.name.presence || @user.email %> 様</p>
+
+<p>以下の備品の貸出申請を受け付けました。管理者が承認後、貸出が開始されます。</p>
+
+<table>
+  <tr>
+    <th>備品名</th>
+    <td><%= @equipment.name %></td>
+  </tr>
+  <tr>
+    <th>管理番号</th>
+    <td><%= @equipment.management_number %></td>
+  </tr>
+  <tr>
+    <th>貸出開始日</th>
+    <td><%= @loan.start_date.strftime("%Y/%m/%d") %></td>
+  </tr>
+  <tr>
+    <th>返却予定日</th>
+    <td><%= @loan.expected_return_date.strftime("%Y/%m/%d") %></td>
+  </tr>
+</table>
+
+<p>ご不明な点がございましたら、管理者までお問い合わせください。</p>

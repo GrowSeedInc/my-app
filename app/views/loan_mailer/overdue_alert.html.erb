@@ -1,0 +1,28 @@
+<h2>延滞アラート</h2>
+
+<p>以下の貸出が延滞状態になっています。</p>
+
+<table>
+  <tr>
+    <th>備品名</th>
+    <td><%= @equipment.name %></td>
+  </tr>
+  <tr>
+    <th>管理番号</th>
+    <td><%= @equipment.management_number %></td>
+  </tr>
+  <tr>
+    <th>借用者</th>
+    <td><%= @user.name.presence || @user.email %></td>
+  </tr>
+  <tr>
+    <th>返却予定日</th>
+    <td><%= @loan.expected_return_date.strftime("%Y/%m/%d") %></td>
+  </tr>
+  <tr>
+    <th>延滞日数</th>
+    <td><%= (Date.today - @loan.expected_return_date).to_i %> 日</td>
+  </tr>
+</table>
+
+<p>該当ユーザーへ返却を促してください。</p>

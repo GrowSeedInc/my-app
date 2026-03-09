@@ -10,6 +10,19 @@ RSpec.describe LoanService do
     let(:start_date) { Date.today }
     let(:expected_return_date) { Date.today + 7 }
 
+    context "在庫がある場合（通知含む）" do
+      it "貸出成功時に loan_confirmation メールをキューに積む" do
+        expect {
+          service.create(
+            user: member,
+            equipment_id: equipment.id,
+            start_date: start_date,
+            expected_return_date: expected_return_date
+          )
+        }.to have_enqueued_mail(LoanMailer, :loan_confirmation)
+      end
+    end
+
     context "在庫がある場合" do
       it "貸出レコードを作成し success: true を返す" do
         result = service.create(
@@ -64,6 +77,32 @@ RSpec.describe LoanService do
         expect(successes).to eq(1)
         expect(failures).to eq(1)
         expect(equipment2.reload.available_count).to eq(0)
+      end
+    end
+
+    context "貸出後に在庫が閾値を下回る場合" do
+      it "low_stock_alert メールをキューに積む" do
+        low_equipment = create(:equipment, total_count: 3, available_count: 2, low_stock_threshold: 2)
+        expect {
+          service.create(
+            user: member,
+            equipment_id: low_equipment.id,
+            start_date: start_date,
+            expected_return_date: expected_return_date
+          )
+        }.to have_enqueued_mail(LoanMailer, :low_stock_alert)
+      end
+
+      it "閾値が0の場合はアラートを送らない" do
+        no_threshold_equipment = create(:equipment, total_count: 3, available_count: 1, low_stock_threshold: 0)
+        expect {
+          service.create(
+            user: member,
+            equipment_id: no_threshold_equipment.id,
+            start_date: start_date,
+            expected_return_date: expected_return_date
+          )
+        }.not_to have_enqueued_mail(LoanMailer, :low_stock_alert)
       end
     end
 

@@ -39,8 +39,14 @@ class LoanService
         loan.save!
         equipment.decrement!(:available_count)
         result = { success: true, loan: loan }
+
+        if equipment.low_stock_threshold > 0 && equipment.available_count < equipment.low_stock_threshold
+          notification_service.send_low_stock_alert(equipment: equipment)
+        end
       end
     end
+
+    notification_service.send_loan_confirmation(loan: loan) if result[:success]
 
     result
   end
@@ -57,6 +63,14 @@ class LoanService
     loan.update!(status: :active)
     { success: true, loan: loan }
   end
+
+  private
+
+  def notification_service
+    @notification_service ||= NotificationService.new
+  end
+
+  public
 
   # @param loan [Loan]
   # @return [void]

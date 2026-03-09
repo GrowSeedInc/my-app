@@ -1,0 +1,10 @@
+在庫不足アラート
+
+以下の備品の在庫が閾値を下回りました。
+
+備品名：<%= @equipment.name %>
+管理番号：<%= @equipment.management_number %>
+現在の貸出可能数：<%= @equipment.available_count %>
+在庫不足閾値：<%= @equipment.low_stock_threshold %>
+
+在庫の補充をご検討ください。

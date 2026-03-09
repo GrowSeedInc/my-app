@@ -1,0 +1,24 @@
+<h2>在庫不足アラート</h2>
+
+<p>以下の備品の在庫が閾値を下回りました。</p>
+
+<table>
+  <tr>
+    <th>備品名</th>
+    <td><%= @equipment.name %></td>
+  </tr>
+  <tr>
+    <th>管理番号</th>
+    <td><%= @equipment.management_number %></td>
+  </tr>
+  <tr>
+    <th>現在の貸出可能数</th>
+    <td><%= @equipment.available_count %></td>
+  </tr>
+  <tr>
+    <th>在庫不足閾値</th>
+    <td><%= @equipment.low_stock_threshold %></td>
+  </tr>
+</table>
+
+<p>在庫の補充をご検討ください。</p>
