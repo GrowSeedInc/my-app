@@ -65,7 +65,8 @@ RSpec.describe "Equipments", type: :request do
           post equipments_path, params: valid_params
         }.to change(Equipment, :count).by(1)
 
-        expect(response).to redirect_to(equipment_path(Equipment.last))
+        created = Equipment.find_by!(management_number: "EQ-NEW")
+        expect(response).to redirect_to(equipment_path(created))
       end
 
       it "バリデーションエラー時は422を返す" do

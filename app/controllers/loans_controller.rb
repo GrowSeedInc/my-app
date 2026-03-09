@@ -9,7 +9,7 @@ class LoansController < ApplicationController
   def new
     authorize Loan
     @loan = Loan.new
-    @equipments = Equipment.kept.where(status: %w[available in_use]).order(:name)
+    @equipments = Equipment.kept.where(status: %w[available in_use repair]).order(:name)
   end
 
   def create
@@ -26,7 +26,7 @@ class LoansController < ApplicationController
     else
       @loan = result[:loan] || Loan.new(loan_params)
       @loan.errors.add(:base, result[:message]) unless result[:error] == :validation_failed
-      @equipments = Equipment.kept.where(status: %w[available in_use]).order(:name)
+      @equipments = Equipment.kept.where(status: %w[available in_use repair]).order(:name)
       render :new, status: :unprocessable_entity
     end
   end

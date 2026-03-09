@@ -12,7 +12,14 @@
 
   <div>
     <%= f.label :equipment_id, "備品", class: "block text-sm font-medium text-gray-700 mb-1" %>
-    <%= f.collection_select :equipment_id, equipments, :id, :name,
+    <%= f.select :equipment_id,
+          options_for_select(
+            equipments.map { |e|
+              label = e.repair? ? "#{e.name}（修理中・貸出不可）" : e.name
+              e.repair? ? [ label, e.id, { disabled: true } ] : [ label, e.id ]
+            },
+            loan.equipment_id
+          ),
           { include_blank: "備品を選択してください" },
           class: "w-full border #{ loan.errors[:equipment_id].any? ? 'border-red-500' : 'border-gray-300' } rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" %>
     <% if loan.errors[:equipment_id].any? %>
