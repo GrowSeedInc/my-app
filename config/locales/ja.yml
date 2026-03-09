@@ -1,4 +1,11 @@
 ja:
+  loan:
+    status:
+      pending_approval: "承認待ち"
+      active: "貸出中"
+      returned: "返却済"
+      overdue: "延滞中"
+
   equipment:
     status:
       available: "利用可能"

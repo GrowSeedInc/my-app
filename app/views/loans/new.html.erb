@@ -1,0 +1,12 @@
+<% content_for :title, "貸出申請" %>
+
+<div class="container mx-auto px-4 py-8 max-w-2xl">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">貸出申請</h1>
+    <%= link_to "一覧に戻る", loans_path, class: "text-gray-600 hover:text-gray-900" %>
+  </div>
+
+  <div class="bg-white shadow-sm rounded-lg p-6">
+    <%= render "form", loan: @loan, equipments: @equipments %>
+  </div>
+</div>
