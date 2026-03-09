@@ -3,7 +3,29 @@ class EquipmentsController < ApplicationController
 
   def index
     authorize Equipment
-    @equipments = Equipment.kept.includes(:category).order(created_at: :desc)
+    @categories = Category.order(:name)
+
+    search_result = search_service.search_equipments(
+      keyword:     params[:keyword],
+      category_id: params[:category_id],
+      status:      params[:status],
+      sort:        params[:sort],
+      page:        params[:page]
+    )
+    @equipments = search_result.records
+    @pagination = search_result
+
+    if current_user.admin?
+      equipment_ids = @equipments.map(&:id)
+      @active_loans_by_equipment = Loan.where(status: %i[active overdue])
+                                       .where(equipment_id: equipment_ids)
+                                       .includes(:user)
+                                       .group_by(&:equipment_id)
+    else
+      @my_active_equipment_ids = current_user.loans
+                                             .where(status: %i[active overdue])
+                                             .pluck(:equipment_id)
+    end
   end
 
   def show
@@ -62,6 +84,10 @@ class EquipmentsController < ApplicationController
 
   def equipment_service
     @equipment_service ||= EquipmentService.new
+  end
+
+  def search_service
+    @search_service ||= SearchService.new
   end
 
   def equipment_create_params

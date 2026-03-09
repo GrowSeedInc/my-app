@@ -3,7 +3,23 @@ class LoansController < ApplicationController
 
   def index
     authorize Loan
-    @loans = policy_scope_loans
+    if current_user.admin?
+      search_result = search_service.search_loans(
+        user_id:      params[:user_id],
+        equipment_id: params[:equipment_id],
+        status:       params[:status],
+        date_from:    params[:date_from],
+        date_to:      params[:date_to],
+        page:         params[:page]
+      )
+      @loans      = search_result.records
+      @pagination = search_result
+      @users_for_filter      = User.order(:email)
+      @equipments_for_filter = Equipment.kept.order(:name)
+    else
+      @loans      = current_user.loans.includes(:equipment).order(created_at: :desc)
+      @pagination = nil
+    end
   end
 
   def new
@@ -67,15 +83,12 @@ class LoansController < ApplicationController
     @return_service ||= ReturnService.new
   end
 
+  def search_service
+    @search_service ||= SearchService.new
+  end
+
   def loan_params
     params.require(:loan).permit(:equipment_id, :start_date, :expected_return_date)
   end
 
-  def policy_scope_loans
-    if current_user.admin?
-      Loan.includes(:equipment, :user).order(created_at: :desc)
-    else
-      current_user.loans.includes(:equipment).order(created_at: :desc)
-    end
-  end
 end
