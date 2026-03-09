@@ -1,0 +1,79 @@
+<% content_for :title, "マイページ" %>
+
+<div class="container mx-auto px-4 py-8">
+  <h1 class="text-2xl font-bold text-gray-900 mb-6">マイページ</h1>
+
+  <%# 現在の貸出 %>
+  <section class="mb-8">
+    <h2 class="text-lg font-semibold text-gray-800 mb-3">現在の貸出</h2>
+    <div class="bg-white shadow-sm rounded-lg overflow-hidden">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">備品名</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">管理番号</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">貸出開始日</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">返却予定日</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ステータス</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <% @active_loans.each do |loan| %>
+            <tr class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"><%= loan.equipment.name %></td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= loan.equipment.management_number %></td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= loan.start_date.strftime("%Y/%m/%d") %></td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= loan.expected_return_date.strftime("%Y/%m/%d") %></td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="<%= loan_status_badge_class(loan.status) %> px-2 py-1 rounded-full text-xs font-medium">
+                  <%= t("loan.status.#{loan.status}") %>
+                </span>
+              </td>
+            </tr>
+          <% end %>
+          <% if @active_loans.empty? %>
+            <tr>
+              <td colspan="5" class="px-6 py-10 text-center text-sm text-gray-500">現在貸出中の備品はありません</td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <%# 過去の貸出履歴 %>
+  <section>
+    <h2 class="text-lg font-semibold text-gray-800 mb-3">過去の貸出履歴</h2>
+    <div class="bg-white shadow-sm rounded-lg overflow-hidden">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">備品名</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">管理番号</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">貸出開始日</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">返却予定日</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">実返却日</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <% @past_loans.each do |loan| %>
+            <tr class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"><%= loan.equipment.name %></td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= loan.equipment.management_number %></td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= loan.start_date.strftime("%Y/%m/%d") %></td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= loan.expected_return_date.strftime("%Y/%m/%d") %></td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <%= loan.actual_return_date&.strftime("%Y/%m/%d") || "—" %>
+              </td>
+            </tr>
+          <% end %>
+          <% if @past_loans.empty? %>
+            <tr>
+              <td colspan="5" class="px-6 py-10 text-center text-sm text-gray-500">過去の貸出履歴はありません</td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

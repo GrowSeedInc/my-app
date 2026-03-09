@@ -11,7 +11,10 @@ Rails.application.routes.draw do
 
   namespace :admin do
     resource :dashboard, only: :show
+    resources :users
   end
+
+  resource :mypage, only: :show
 
   resources :equipments
   resources :loans, only: [ :index, :new, :create ] do

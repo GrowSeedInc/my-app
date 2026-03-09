@@ -6,5 +6,6 @@ class User < ApplicationRecord
 
   has_many :loans
 
+  validates :name, presence: true
   validates :password, length: { minimum: 8 }, if: :password_required?
 end

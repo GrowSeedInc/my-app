@@ -1,0 +1,47 @@
+<%= form_with model: [:admin, user], class: "space-y-4" do |f| %>
+  <% if user.errors.any? %>
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+      <ul class="list-disc list-inside text-sm">
+        <% user.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.label :name, "氏名", class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= f.text_field :name,
+          class: "w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500",
+          placeholder: "山田 太郎" %>
+  </div>
+
+  <div>
+    <%= f.label :email, "メールアドレス", class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= f.email_field :email,
+          class: "w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500",
+          placeholder: "user@example.com" %>
+  </div>
+
+  <% if user.new_record? %>
+    <div>
+      <%= f.label :password, "パスワード（8文字以上）", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= f.password_field :password,
+            class: "w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" %>
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.label :role, "ロール", class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= f.select :role,
+          [["一般ユーザー", "member"], ["管理者", "admin"]],
+          { selected: user.role },
+          class: "w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" %>
+  </div>
+
+  <div class="flex gap-3 pt-2">
+    <%= f.submit user.new_record? ? "作成する" : "更新する",
+          class: "bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-lg cursor-pointer" %>
+    <%= link_to "キャンセル", admin_users_path, class: "text-gray-500 hover:text-gray-700 px-4 py-2" %>
+  </div>
+<% end %>
