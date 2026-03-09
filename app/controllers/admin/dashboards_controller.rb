@@ -1,8 +1,9 @@
 class Admin::DashboardsController < ApplicationController
   def show
     authorize :dashboard, :show?
-    @summary       = inventory_service.dashboard_summary
-    @overdue_loans = inventory_service.overdue_loans
+    @summary            = inventory_service.dashboard_summary
+    @overdue_loans      = inventory_service.overdue_loans
+    @pending_loans_count = Loan.where(status: :pending_approval).count
   end
 
   private

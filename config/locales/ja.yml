@@ -13,7 +13,27 @@ ja:
       repair: "修理中"
       disposed: "廃棄"
 
+  errors:
+    messages:
+      blank: "を入力してください"
+      empty: "を入力してください"
+      too_short: "は%{count}文字以上で入力してください"
+      too_long: "は%{count}文字以内で入力してください"
+      invalid: "は不正な値です"
+      taken: "はすでに使用されています"
+      not_a_number: "は数値で入力してください"
+      greater_than_or_equal_to: "は%{count}以上の値にしてください"
+      not_saved:
+        one: "エラーが1件あるため保存できませんでした"
+        other: "%{count}件のエラーがあるため保存できませんでした"
+
   activerecord:
+    errors:
+      messages:
+        blank: "を入力してください"
+        taken: "はすでに使用されています"
+        too_short: "は%{count}文字以上で入力してください"
+        invalid: "は不正な値です"
     models:
       equipment: "備品"
       loan: "貸出"

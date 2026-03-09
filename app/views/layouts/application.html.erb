@@ -1,29 +1,84 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title><%= content_for(:title) || "My App" %></title>
+    <title><%= content_for(:title) || "備品管理システム" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="application-name" content="My App">
+    <meta name="application-name" content="備品管理システム">
     <meta name="mobile-web-app-capable" content="yes">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
-
     <%= yield :head %>
-
-    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
-    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
-
     <link rel="icon" href="/icon.png" type="image/png">
-    <link rel="icon" href="/icon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/icon.png">
-
-    <%# Includes all stylesheet files in app/assets/stylesheets %>
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
 
-  <body>
-    <%= yield %>
+  <body class="bg-gray-50 min-h-screen text-gray-900 antialiased">
+
+    <% if user_signed_in? %>
+      <header class="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex items-center justify-between h-14">
+
+            <%# ロゴ %>
+            <%= link_to root_path, class: "flex items-center gap-2 font-semibold text-gray-800 hover:text-blue-600 transition-colors" do %>
+              <span class="text-blue-600 text-lg">▤</span>
+              <span class="text-sm">備品管理</span>
+            <% end %>
+
+            <%# ナビ %>
+            <nav class="flex items-center gap-0.5 text-sm">
+              <%= link_to "備品一覧", equipments_path, class: "px-3 py-2 rounded-md transition-colors #{controller_name == 'equipments' ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}" %>
+              <%= link_to "貸出一覧", loans_path, class: "px-3 py-2 rounded-md transition-colors #{controller_name == 'loans' ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}" %>
+              <%= link_to "マイページ", mypage_path, class: "px-3 py-2 rounded-md transition-colors #{controller_name == 'mypages' ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}" %>
+              <% if current_user.admin? %>
+                <span class="w-px h-4 bg-gray-200 mx-1"></span>
+                <%= link_to "ダッシュボード", admin_dashboard_path, class: "px-3 py-2 rounded-md transition-colors #{controller_name == 'dashboards' ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}" %>
+                <%= link_to "ユーザー管理", admin_users_path, class: "px-3 py-2 rounded-md transition-colors #{controller_name == 'users' && controller.class.module_parent == Admin ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}" %>
+              <% end %>
+            </nav>
+
+            <%# ユーザー情報 %>
+            <div class="flex items-center gap-3">
+              <div class="text-right hidden sm:block">
+                <p class="text-xs font-medium text-gray-800 leading-tight"><%= current_user.name.presence || current_user.email %></p>
+                <% if current_user.admin? %>
+                  <p class="text-xs text-purple-600 font-medium">管理者</p>
+                <% else %>
+                  <p class="text-xs text-gray-400">一般ユーザー</p>
+                <% end %>
+              </div>
+              <%= button_to "ログアウト", destroy_user_session_path, method: :delete,
+                    class: "text-xs text-gray-500 hover:text-gray-700 border border-gray-200 hover:border-gray-300 px-3 py-1.5 rounded-md cursor-pointer bg-white transition-colors" %>
+            </div>
+
+          </div>
+        </div>
+      </header>
+    <% end %>
+
+    <%# フラッシュメッセージ（全ページ共通） %>
+    <% if notice.present? %>
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+        <div class="flex items-center gap-2 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg text-sm">
+          <span class="text-green-500">✓</span>
+          <%= notice %>
+        </div>
+      </div>
+    <% end %>
+    <% if alert.present? %>
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+        <div class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg text-sm">
+          <span class="text-red-500">✕</span>
+          <%= alert %>
+        </div>
+      </div>
+    <% end %>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <%= yield %>
+    </main>
+
   </body>
 </html>
