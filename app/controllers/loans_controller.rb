@@ -1,5 +1,5 @@
 class LoansController < ApplicationController
-  before_action :set_loan, only: [ :approve ]
+  before_action :set_loan, only: [ :approve, :return_loan ]
 
   def index
     authorize Loan
@@ -42,6 +42,17 @@ class LoansController < ApplicationController
     end
   end
 
+  def return_loan
+    authorize @loan
+    result = return_service.process_return(loan_id: @loan.id, actor: current_user)
+
+    if result[:success]
+      redirect_to loans_path, notice: "返却処理が完了しました"
+    else
+      redirect_to loans_path, alert: result[:message], status: :unprocessable_entity
+    end
+  end
+
   private
 
   def set_loan
@@ -50,6 +61,10 @@ class LoansController < ApplicationController
 
   def loan_service
     @loan_service ||= LoanService.new
+  end
+
+  def return_service
+    @return_service ||= ReturnService.new
   end
 
   def loan_params

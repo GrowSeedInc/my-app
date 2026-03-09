@@ -13,6 +13,7 @@ Rails.application.routes.draw do
   resources :loans, only: [ :index, :new, :create ] do
     member do
       patch :approve
+      patch "return", action: :return_loan, as: :return
     end
   end
 

@@ -14,4 +14,8 @@ class LoanPolicy < ApplicationPolicy
   def approve?
     user.admin?
   end
+
+  def return_loan?
+    user.admin? || record.user == user
+  end
 end
