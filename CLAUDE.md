@@ -38,6 +38,11 @@ Kiro-style Spec Driven Development implementation on AI-DLC (AI Development Life
 - Human review required each phase; use `-y` only for intentional fast-track
 - Keep steering current and verify alignment with `/kiro:spec-status`
 - Follow the user's instructions precisely, and within that scope act autonomously: gather the necessary context and complete the requested work end-to-end in this run, asking questions only when essential information is missing or the instructions are critically ambiguous.
+- **ドキュメント優先ルール**: コードの実装・修正を行う前に、必ず関連するドキュメント（要件定義・設計書・タスク等）を先に更新する。
+
+## Environment
+- Rubyおよび Railsはローカル PC に未インストール。コマンドを実行する場合はユーザーがコンテナ内で実行する。
+- アセット再ビルドが必要な場合は `bin/rails tailwindcss:build` または `bin/rails assets:precompile` をコンテナ内で実行すること。
 
 ## Steering Configuration
 - Load entire `.kiro/steering/` as project memory

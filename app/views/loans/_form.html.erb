@@ -1,6 +1,6 @@
-<%= form_with model: loan, url: loans_path, class: "space-y-6" do |f| %>
+<%= form_with model: loan, url: loans_path, class: "space-y-5" do |f| %>
   <% if loan.errors.any? %>
-    <div class="bg-red-50 border border-red-300 rounded-lg p-4">
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
       <h3 class="text-sm font-medium text-red-800 mb-2">入力内容を確認してください</h3>
       <ul class="list-disc list-inside text-sm text-red-700 space-y-1">
         <% loan.errors.full_messages.each do |message| %>
@@ -21,7 +21,7 @@
             loan.equipment_id
           ),
           { include_blank: "備品を選択してください" },
-          class: "w-full border #{ loan.errors[:equipment_id].any? ? 'border-red-500' : 'border-gray-300' } rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" %>
+          class: "w-full border #{ loan.errors[:equipment_id].any? ? 'border-red-400' : 'border-gray-300' } rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
     <% if loan.errors[:equipment_id].any? %>
       <p class="mt-1 text-xs text-red-600"><%= loan.errors[:equipment_id].first %></p>
     <% end %>
@@ -32,7 +32,7 @@
       <%= f.label :start_date, "貸出開始日", class: "block text-sm font-medium text-gray-700 mb-1" %>
       <%= f.date_field :start_date,
             value: loan.start_date || Date.today,
-            class: "w-full border #{ loan.errors[:start_date].any? ? 'border-red-500' : 'border-gray-300' } rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" %>
+            class: "w-full border #{ loan.errors[:start_date].any? ? 'border-red-400' : 'border-gray-300' } rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
       <% if loan.errors[:start_date].any? %>
         <p class="mt-1 text-xs text-red-600"><%= loan.errors[:start_date].first %></p>
       <% end %>
@@ -42,16 +42,16 @@
       <%= f.label :expected_return_date, "返却予定日", class: "block text-sm font-medium text-gray-700 mb-1" %>
       <%= f.date_field :expected_return_date,
             value: loan.expected_return_date,
-            class: "w-full border #{ loan.errors[:expected_return_date].any? ? 'border-red-500' : 'border-gray-300' } rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" %>
+            class: "w-full border #{ loan.errors[:expected_return_date].any? ? 'border-red-400' : 'border-gray-300' } rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
       <% if loan.errors[:expected_return_date].any? %>
         <p class="mt-1 text-xs text-red-600"><%= loan.errors[:expected_return_date].first %></p>
       <% end %>
     </div>
   </div>
 
-  <div class="flex justify-end space-x-3">
-    <%= link_to "キャンセル", loans_path, class: "px-4 py-2 text-sm text-gray-700 hover:text-gray-900" %>
+  <div class="flex justify-end gap-3 pt-2 border-t border-gray-100">
+    <%= link_to "キャンセル", loans_path, class: "px-4 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors" %>
     <%= f.submit "申請する",
-          class: "bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-lg text-sm cursor-pointer" %>
+          class: "bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-md text-sm cursor-pointer transition-colors" %>
   </div>
 <% end %>

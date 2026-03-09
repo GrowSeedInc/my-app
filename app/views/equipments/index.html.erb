@@ -1,36 +1,36 @@
 <% content_for :title, "備品一覧" %>
 
 <div>
-  <div class="flex justify-between items-center mb-6">
-    <h1 class="text-2xl font-bold text-gray-900">備品一覧</h1>
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="text-xl font-semibold text-gray-800">備品一覧</h1>
     <% if policy(Equipment).create? %>
-      <%= link_to "備品を登録", new_equipment_path,
-            class: "bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg" %>
+      <%= link_to "＋ 備品を登録", new_equipment_path,
+            class: "bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-md transition-colors" %>
     <% end %>
   </div>
 
   <%# 検索・フィルタフォーム %>
-  <%= form_with url: equipments_path, method: :get, class: "bg-white shadow-sm rounded-lg p-4 mb-6" do |f| %>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+  <%= form_with url: equipments_path, method: :get, class: "bg-white border border-gray-200 rounded-lg p-4 mb-4" do |f| %>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
       <div>
         <%= f.label :keyword, "キーワード", class: "block text-xs font-medium text-gray-600 mb-1" %>
         <%= f.text_field :keyword, value: params[:keyword],
               placeholder: "備品名・管理番号・説明",
-              class: "w-full border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" %>
+              class: "w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
       </div>
       <div>
         <%= f.label :category_id, "カテゴリ", class: "block text-xs font-medium text-gray-600 mb-1" %>
         <%= f.select :category_id,
               options_from_collection_for_select(@categories, :id, :name, params[:category_id]),
               { include_blank: "すべて" },
-              class: "w-full border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" %>
+              class: "w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
       </div>
       <div>
         <%= f.label :status, "ステータス", class: "block text-xs font-medium text-gray-600 mb-1" %>
         <%= f.select :status,
               [["利用可能", "available"], ["貸出中", "in_use"], ["修理中", "repair"], ["廃棄", "disposed"]],
               { include_blank: "すべて", selected: params[:status] },
-              class: "w-full border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" %>
+              class: "w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
       </div>
       <div>
         <%= f.label :sort, "並び替え", class: "block text-xs font-medium text-gray-600 mb-1" %>
@@ -45,74 +45,78 @@
                 ["在庫数（少ない順）", "available_count_asc"]
               ],
               { selected: params[:sort] },
-              class: "w-full border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" %>
+              class: "w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
       </div>
     </div>
     <div class="mt-3 flex gap-2">
-      <%= f.submit "検索", class: "bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-1.5 rounded cursor-pointer" %>
+      <%= f.submit "検索", class: "bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-1.5 rounded-md cursor-pointer transition-colors" %>
       <%= link_to "リセット", equipments_path, class: "text-sm text-gray-500 hover:text-gray-700 px-4 py-1.5" %>
     </div>
   <% end %>
 
   <%# 一覧テーブル %>
-  <div class="bg-white shadow-sm rounded-lg overflow-hidden">
+  <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
     <table class="min-w-full divide-y divide-gray-200">
-      <thead class="bg-gray-50">
+      <thead class="bg-slate-50">
         <tr>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">管理番号</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">備品名</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">カテゴリ</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">総数</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">貸出可能数</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ステータス</th>
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">管理番号</th>
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">備品名</th>
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">カテゴリ</th>
+          <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">総数</th>
+          <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">貸出可能数</th>
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ステータス</th>
           <% if current_user.admin? %>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">貸出中数</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">貸出者</th>
+            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">貸出中数</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">貸出者</th>
           <% end %>
-          <th class="px-6 py-3"></th>
+          <th class="px-4 py-3"></th>
         </tr>
       </thead>
-      <tbody class="bg-white divide-y divide-gray-200">
+      <tbody class="bg-white divide-y divide-gray-100">
         <% @equipments.each do |equipment| %>
           <%
             my_loan   = !current_user.admin? && @my_active_equipment_ids.include?(equipment.id)
-            row_class = my_loan ? "bg-blue-50 border-l-4 border-blue-400" : "hover:bg-gray-50"
+            row_class = my_loan ? "bg-blue-50 border-l-4 border-blue-400" : "hover:bg-slate-50 transition-colors"
           %>
           <tr class="<%= row_class %>">
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= equipment.management_number %></td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-              <%= link_to equipment.name, equipment_path(equipment), class: "hover:text-blue-600" %>
+            <td class="px-4 py-3 text-sm text-gray-500 whitespace-nowrap"><%= equipment.management_number %></td>
+            <td class="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap">
+              <%= link_to equipment.name, equipment_path(equipment), class: "hover:text-blue-600 transition-colors" %>
               <% if my_loan %>
                 <span class="ml-1 text-xs text-blue-600 font-normal">（貸出中）</span>
               <% end %>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= equipment.category&.name || "—" %></td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= equipment.total_count %></td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= equipment.available_count %></td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <span class="<%= equipment_status_badge_class(equipment.status) %> px-2 py-1 rounded-full text-xs font-medium">
+            <td class="px-4 py-3 text-sm text-gray-500 whitespace-nowrap"><%= equipment.category&.name || "—" %></td>
+            <td class="px-4 py-3 text-sm text-gray-600 text-center whitespace-nowrap"><%= equipment.total_count %></td>
+            <td class="px-4 py-3 text-sm text-center whitespace-nowrap">
+              <span class="<%= equipment.available_count > 0 ? 'text-emerald-700 font-medium' : 'text-red-600 font-medium' %>">
+                <%= equipment.available_count %>
+              </span>
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap">
+              <span class="<%= equipment_status_badge_class(equipment.status) %> px-2 py-0.5 rounded-full text-xs font-medium">
                 <%= t("equipment.status.#{equipment.status}") %>
               </span>
             </td>
             <% if current_user.admin? %>
               <%
                 active_loans = @active_loans_by_equipment[equipment.id] || []
-                loaners      = active_loans.map { |l| l.user.email }.join(", ")
+                loaners      = active_loans.map { |l| l.user.name.presence || l.user.email }.join(", ")
               %>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= active_loans.size > 0 ? active_loans.size : "—" %></td>
-              <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate"><%= loaners.presence || "—" %></td>
+              <td class="px-4 py-3 text-sm text-center text-gray-500 whitespace-nowrap"><%= active_loans.size > 0 ? active_loans.size : "—" %></td>
+              <td class="px-4 py-3 text-sm text-gray-500 max-w-xs truncate"><%= loaners.presence || "—" %></td>
             <% end %>
-            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-              <%= link_to "詳細", equipment_path(equipment), class: "text-blue-600 hover:text-blue-900" %>
+            <td class="px-4 py-3 whitespace-nowrap text-right text-sm font-medium space-x-2">
+              <%= link_to "詳細", equipment_path(equipment), class: "text-blue-600 hover:text-blue-800 transition-colors" %>
               <% if policy(equipment).edit? %>
-                <%= link_to "編集", edit_equipment_path(equipment), class: "text-indigo-600 hover:text-indigo-900" %>
+                <%= link_to "編集", edit_equipment_path(equipment), class: "text-gray-500 hover:text-gray-700 transition-colors" %>
               <% end %>
             </td>
           </tr>
         <% end %>
         <% if @equipments.to_a.empty? %>
           <tr>
-            <td colspan="<%= current_user.admin? ? 9 : 7 %>" class="px-6 py-10 text-center text-sm text-gray-500">
+            <td colspan="<%= current_user.admin? ? 9 : 7 %>" class="px-4 py-12 text-center text-sm text-gray-400">
               備品が見つかりません
             </td>
           </tr>
@@ -130,12 +134,12 @@
       </p>
       <div class="flex gap-2">
         <% if @pagination.prev_page %>
-          <%= link_to "← 前のページ", equipments_path(request.query_parameters.merge(page: @pagination.prev_page)),
-                class: "px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50" %>
+          <%= link_to "← 前へ", equipments_path(request.query_parameters.merge(page: @pagination.prev_page)),
+                class: "px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors" %>
         <% end %>
         <% if @pagination.next_page %>
-          <%= link_to "次のページ →", equipments_path(request.query_parameters.merge(page: @pagination.next_page)),
-                class: "px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50" %>
+          <%= link_to "次へ →", equipments_path(request.query_parameters.merge(page: @pagination.next_page)),
+                class: "px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors" %>
         <% end %>
       </div>
     </div>

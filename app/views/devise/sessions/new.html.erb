@@ -1,57 +1,58 @@
-<div class="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-  <div class="max-w-md w-full space-y-8">
-    <div>
-      <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-        備品管理システム
-      </h2>
-      <p class="mt-2 text-center text-sm text-gray-600">
-        アカウントにログインしてください
-      </p>
+<div class="min-h-screen bg-gray-100 flex items-center justify-center py-12 px-4">
+  <div class="w-full max-w-sm">
+
+    <%# ロゴ・タイトル %>
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-12 h-12 bg-blue-600 rounded-xl mb-4">
+        <span class="text-white text-xl">▤</span>
+      </div>
+      <h1 class="text-xl font-bold text-gray-800">備品管理システム</h1>
+      <p class="mt-1 text-sm text-gray-500">社内備品の貸出・管理</p>
     </div>
 
-    <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: "mt-8 space-y-6" }) do |f| %>
+    <%# ログインカード %>
+    <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-8">
       <% if alert.present? %>
-        <div class="rounded-md bg-red-50 p-4">
-          <p class="text-sm font-medium text-red-700"><%= alert %></p>
+        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-4">
+          <%= alert %>
         </div>
       <% end %>
 
-      <div class="rounded-md shadow-sm -space-y-px">
+      <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: "space-y-4" }) do |f| %>
         <div>
-          <%= f.label :email, "メールアドレス", class: "sr-only" %>
+          <%= f.label :email, "メールアドレス", class: "block text-sm font-medium text-gray-700 mb-1" %>
           <%= f.email_field :email,
                 autocomplete: "email",
                 required: true,
-                class: "appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm",
-                placeholder: "メールアドレス" %>
+                class: "w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+                placeholder: "user@example.com" %>
         </div>
+
         <div>
-          <%= f.label :password, "パスワード", class: "sr-only" %>
+          <%= f.label :password, "パスワード", class: "block text-sm font-medium text-gray-700 mb-1" %>
           <%= f.password_field :password,
                 autocomplete: "current-password",
                 required: true,
-                class: "appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm",
+                class: "w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
                 placeholder: "パスワード" %>
         </div>
-      </div>
 
-      <div class="flex items-center justify-between">
-        <div class="flex items-center">
-          <%= f.check_box :remember_me, class: "h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" %>
-          <%= f.label :remember_me, "ログイン状態を保持する", class: "ml-2 block text-sm text-gray-900" %>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <%= f.check_box :remember_me, class: "h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" %>
+            <%= f.label :remember_me, "ログイン状態を保持する", class: "text-sm text-gray-600" %>
+          </div>
+
+          <% if devise_mapping.recoverable? && controller_name != "passwords" && controller_name != "registrations" %>
+            <%= link_to "パスワードを忘れた方", new_password_path(resource_name), class: "text-xs text-blue-600 hover:text-blue-800" %>
+          <% end %>
         </div>
 
-        <% if devise_mapping.recoverable? && controller_name != "passwords" && controller_name != "registrations" %>
-          <div class="text-sm">
-            <%= link_to "パスワードを忘れた方はこちら", new_password_path(resource_name), class: "font-medium text-indigo-600 hover:text-indigo-500" %>
-          </div>
-        <% end %>
-      </div>
-
-      <div>
-        <%= f.submit "ログイン",
-              class: "group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer" %>
-      </div>
-    <% end %>
+        <div class="pt-1">
+          <%= f.submit "ログイン",
+                class: "w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md text-sm cursor-pointer transition-colors" %>
+        </div>
+      <% end %>
+    </div>
   </div>
 </div>

@@ -1,77 +1,81 @@
 <% content_for :title, @equipment.name %>
 
-<div class="max-w-3xl">
-  <div class="flex justify-between items-center mb-6">
-    <h1 class="text-2xl font-bold text-gray-900">備品詳細</h1>
-    <div class="space-x-2">
+<div class="max-w-2xl">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="text-xl font-semibold text-gray-800">備品詳細</h1>
+    <div class="flex items-center gap-2">
       <% if policy(@equipment).edit? %>
         <%= link_to "編集", edit_equipment_path(@equipment),
-              class: "bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-lg" %>
+              class: "bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-md transition-colors" %>
       <% end %>
-      <%= link_to "一覧に戻る", equipments_path, class: "text-gray-600 hover:text-gray-900" %>
+      <%= link_to "← 一覧に戻る", equipments_path, class: "text-sm text-gray-500 hover:text-gray-700" %>
     </div>
   </div>
 
   <% if @equipment.errors.any? %>
-    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
       <%= @equipment.errors.full_messages.first %>
     </div>
   <% end %>
 
-  <div class="bg-white shadow-sm rounded-lg overflow-hidden">
-    <dl class="divide-y divide-gray-200">
-      <div class="px-6 py-4 grid grid-cols-3 gap-4">
+  <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+    <dl class="divide-y divide-gray-100">
+      <div class="px-5 py-3 grid grid-cols-3 gap-4">
         <dt class="text-sm font-medium text-gray-500">備品名</dt>
-        <dd class="text-sm text-gray-900 col-span-2"><%= @equipment.name %></dd>
+        <dd class="text-sm text-gray-900 col-span-2 font-medium"><%= @equipment.name %></dd>
       </div>
-      <div class="px-6 py-4 grid grid-cols-3 gap-4">
+      <div class="px-5 py-3 grid grid-cols-3 gap-4">
         <dt class="text-sm font-medium text-gray-500">管理番号</dt>
         <dd class="text-sm text-gray-900 col-span-2"><%= @equipment.management_number %></dd>
       </div>
-      <div class="px-6 py-4 grid grid-cols-3 gap-4">
+      <div class="px-5 py-3 grid grid-cols-3 gap-4">
         <dt class="text-sm font-medium text-gray-500">カテゴリ</dt>
         <dd class="text-sm text-gray-900 col-span-2"><%= @equipment.category&.name || "—" %></dd>
       </div>
-      <div class="px-6 py-4 grid grid-cols-3 gap-4">
+      <div class="px-5 py-3 grid grid-cols-3 gap-4">
         <dt class="text-sm font-medium text-gray-500">説明</dt>
-        <dd class="text-sm text-gray-900 col-span-2"><%= @equipment.description.presence || "—" %></dd>
+        <dd class="text-sm text-gray-600 col-span-2"><%= @equipment.description.presence || "—" %></dd>
       </div>
-      <div class="px-6 py-4 grid grid-cols-3 gap-4">
+      <div class="px-5 py-3 grid grid-cols-3 gap-4">
         <dt class="text-sm font-medium text-gray-500">総数</dt>
         <dd class="text-sm text-gray-900 col-span-2"><%= @equipment.total_count %></dd>
       </div>
-      <div class="px-6 py-4 grid grid-cols-3 gap-4">
+      <div class="px-5 py-3 grid grid-cols-3 gap-4">
         <dt class="text-sm font-medium text-gray-500">貸出可能数</dt>
-        <dd class="text-sm text-gray-900 col-span-2"><%= @equipment.available_count %></dd>
+        <dd class="text-sm col-span-2">
+          <span class="<%= @equipment.available_count > 0 ? 'text-emerald-700 font-semibold' : 'text-red-600 font-semibold' %>">
+            <%= @equipment.available_count %>
+          </span>
+        </dd>
       </div>
-      <div class="px-6 py-4 grid grid-cols-3 gap-4">
+      <div class="px-5 py-3 grid grid-cols-3 gap-4">
         <dt class="text-sm font-medium text-gray-500">ステータス</dt>
         <dd class="col-span-2">
-          <span class="<%= equipment_status_badge_class(@equipment.status) %> px-2 py-1 rounded-full text-xs font-medium">
+          <span class="<%= equipment_status_badge_class(@equipment.status) %> px-2 py-0.5 rounded-full text-xs font-medium">
             <%= t("equipment.status.#{@equipment.status}") %>
           </span>
         </dd>
       </div>
-      <div class="px-6 py-4 grid grid-cols-3 gap-4">
+      <div class="px-5 py-3 grid grid-cols-3 gap-4">
         <dt class="text-sm font-medium text-gray-500">在庫不足閾値</dt>
         <dd class="text-sm text-gray-900 col-span-2"><%= @equipment.low_stock_threshold %></dd>
       </div>
-      <div class="px-6 py-4 grid grid-cols-3 gap-4">
+      <div class="px-5 py-3 grid grid-cols-3 gap-4">
         <dt class="text-sm font-medium text-gray-500">登録日時</dt>
-        <dd class="text-sm text-gray-900 col-span-2"><%= @equipment.created_at.strftime("%Y年%m月%d日 %H:%M") %></dd>
+        <dd class="text-sm text-gray-500 col-span-2"><%= @equipment.created_at.strftime("%Y年%m月%d日 %H:%M") %></dd>
       </div>
-      <div class="px-6 py-4 grid grid-cols-3 gap-4">
+      <div class="px-5 py-3 grid grid-cols-3 gap-4">
         <dt class="text-sm font-medium text-gray-500">更新日時</dt>
-        <dd class="text-sm text-gray-900 col-span-2"><%= @equipment.updated_at.strftime("%Y年%m月%d日 %H:%M") %></dd>
+        <dd class="text-sm text-gray-500 col-span-2"><%= @equipment.updated_at.strftime("%Y年%m月%d日 %H:%M") %></dd>
       </div>
     </dl>
   </div>
 
   <% if policy(@equipment).destroy? %>
-    <div class="mt-6 border-t border-red-200 pt-6">
+    <div class="mt-6 pt-4 border-t border-gray-200">
       <%= button_to "この備品を削除する", equipment_path(@equipment), method: :delete,
             data: { turbo_confirm: "#{@equipment.name} を削除しますか？この操作は取り消せません。" },
-            class: "bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2 rounded-lg" %>
+            class: "bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-4 py-2 rounded-md transition-colors" %>
     </div>
   <% end %>
 </div>
