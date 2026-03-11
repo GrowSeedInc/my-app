@@ -1,0 +1,113 @@
+@startuml class_diagram
+title 備品管理システム クラス図
+
+top to bottom direction
+skinparam classAttributeIconSize 0
+
+' ============================================================
+' Models
+' ============================================================
+package "Models" #E8F4FD {
+  class ApplicationRecord <<abstract>>
+  class Category
+  class Equipment
+  class Loan
+  class User
+
+  ApplicationRecord <|-- Category
+  ApplicationRecord <|-- Equipment
+  ApplicationRecord <|-- Loan
+  ApplicationRecord <|-- User
+
+  Category "1" o-- "0..*" Equipment
+  Equipment "1" o-- "0..*" Loan
+  User "1" o-- "0..*" Loan
+}
+
+' ============================================================
+' Controllers
+' ============================================================
+package "Controllers" #F0F8E8 {
+  class ApplicationController
+  class EquipmentsController
+  class LoansController
+  class MypagesController
+  class "Admin::DashboardsController" as AdminDashboardsController
+  class "Admin::UsersController" as AdminUsersController
+
+  ApplicationController <|-- EquipmentsController
+  ApplicationController <|-- LoansController
+  ApplicationController <|-- MypagesController
+  ApplicationController <|-- AdminDashboardsController
+  ApplicationController <|-- AdminUsersController
+}
+
+' ============================================================
+' Policies
+' ============================================================
+package "Policies" #FFF8E8 {
+  class ApplicationPolicy
+  class EquipmentPolicy
+  class LoanPolicy
+  class DashboardPolicy
+  class UserPolicy
+
+  ApplicationPolicy <|-- EquipmentPolicy
+  ApplicationPolicy <|-- LoanPolicy
+  ApplicationPolicy <|-- DashboardPolicy
+  ApplicationPolicy <|-- UserPolicy
+}
+
+' ============================================================
+' Services
+' ============================================================
+package "Services" #F8F0FF {
+  class EquipmentService
+  class LoanService
+  class ReturnService
+  class InventoryService
+  class SearchService
+  class NotificationService
+  class UserService
+}
+
+' ============================================================
+' Mailers
+' ============================================================
+package "Mailers" #FFF0F0 {
+  class ApplicationMailer
+  class LoanMailer
+
+  ApplicationMailer <|-- LoanMailer
+}
+
+' ============================================================
+' Jobs
+' ============================================================
+package "Jobs" #F0F0F0 {
+  class ApplicationJob
+  class OverdueCheckJob
+
+  ApplicationJob <|-- OverdueCheckJob
+}
+
+' ============================================================
+' 依存関係
+' ============================================================
+EquipmentsController ..> EquipmentService
+EquipmentsController ..> SearchService
+
+LoansController ..> LoanService
+LoansController ..> ReturnService
+LoansController ..> SearchService
+
+AdminDashboardsController ..> InventoryService
+AdminUsersController ..> UserService
+
+LoanService ..> NotificationService
+NotificationService ..> LoanMailer
+
+OverdueCheckJob ..> LoanService
+OverdueCheckJob ..> NotificationService
+
+@enduml

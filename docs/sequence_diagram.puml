@@ -1,0 +1,106 @@
+@startuml sequence_diagram
+title 備品管理システム シーケンス図
+
+skinparam sequenceArrowThickness 1.5
+
+' ============================================================
+' 1. ユーザーログイン
+' ============================================================
+== 1. ユーザーログイン ==
+
+actor ユーザー
+participant Devise
+database users
+
+ユーザー -> Devise : POST /users/sign_in
+Devise -> users : email でユーザー検索
+users --> Devise : User レコード
+Devise -> Devise : パスワード照合
+Devise --> ユーザー : セッション発行・トップページへリダイレクト
+
+' ============================================================
+' 2. 備品登録
+' ============================================================
+== 2. 備品登録（管理者） ==
+
+actor 管理者
+participant EquipmentsController
+participant EquipmentService
+database equipments
+
+管理者 -> EquipmentsController : POST /equipments
+EquipmentsController -> EquipmentsController : authorize（admin のみ）
+EquipmentsController -> EquipmentService : create(...)
+EquipmentService -> equipments : save
+equipments --> EquipmentService : 保存完了
+EquipmentService --> EquipmentsController : { success: true }
+EquipmentsController --> 管理者 : 備品詳細ページへリダイレクト
+
+' ============================================================
+' 3. 貸出申請
+' ============================================================
+== 3. 貸出申請（一般ユーザー） ==
+
+participant LoansController
+participant LoanService
+participant NotificationService
+participant LoanMailer
+database loans
+
+ユーザー -> LoansController : POST /loans
+LoansController -> LoanService : create(user, equipment_id, ...)
+LoanService -> equipments : 備品取得・排他ロック
+LoanService -> equipments : available_count をデクリメント
+LoanService -> loans : loan.save!
+LoanService -> NotificationService : send_loan_confirmation(loan)
+NotificationService -> LoanMailer : loan_confirmation(loan).deliver_later
+LoanService --> LoansController : { success: true }
+LoansController --> ユーザー : 貸出一覧へリダイレクト
+
+' ============================================================
+' 4. 貸出承認
+' ============================================================
+== 4. 貸出承認（管理者） ==
+
+管理者 -> LoansController : PATCH /loans/:id/approve
+LoansController -> LoansController : authorize（admin のみ）
+LoansController -> LoanService : approve(loan_id)
+LoanService -> loans : status を active に更新
+loans --> LoanService : 更新完了
+LoanService --> LoansController : { success: true }
+LoansController --> 管理者 : 貸出一覧へリダイレクト
+
+' ============================================================
+' 5. 返却処理
+' ============================================================
+== 5. 返却処理 ==
+
+actor 操作者
+participant ReturnService
+
+操作者 -> LoansController : PATCH /loans/:id/return_loan
+LoansController -> ReturnService : process_return(loan_id, actor)
+ReturnService -> loans : status を returned・actual_return_date を更新
+ReturnService -> equipments : available_count をインクリメント
+ReturnService --> LoansController : { success: true }
+LoansController --> 操作者 : 貸出一覧へリダイレクト
+
+' ============================================================
+' 6. 延滞チェックバッチ
+' ============================================================
+== 6. 延滞チェックバッチ（毎日 00:30） ==
+
+participant "Whenever(cron)" as Cron
+participant OverdueCheckJob
+
+Cron -> OverdueCheckJob : perform（毎日 00:30）
+OverdueCheckJob -> loans : active かつ期日超過の貸出を取得
+
+loop 延滞 Loan ごとに
+  OverdueCheckJob -> LoanService : mark_overdue(loan)
+  LoanService -> loans : status を overdue に更新
+  OverdueCheckJob -> NotificationService : send_overdue_alert(loan)
+  NotificationService -> LoanMailer : overdue_alert(loan).deliver_later
+end
+
+@enduml
