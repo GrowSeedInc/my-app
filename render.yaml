@@ -26,7 +26,6 @@ services:
   - type: cron
     name: overdue-check
     runtime: ruby
-    plan: free
     schedule: "30 0 * * *"
     buildCommand: bundle install
     startCommand: bin/rails runner "OverdueCheckJob.perform_now"
