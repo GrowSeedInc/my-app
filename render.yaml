@@ -1,18 +1,47 @@
 services:
-  # Rails Web Service
   - type: web
-    name: my-app-web
+    name: my-app
     runtime: ruby
-    plan: free # 無料プラン
+    plan: free
+    autoDeploy: false
     buildCommand: "./bin/render-build.sh"
-    startCommand: "bundle exec rails server"
+    startCommand: bundle exec puma -C config/puma.rb
+    healthCheckPath: /
     envVars:
+      - key: RAILS_ENV
+        value: production
+      - key: RAILS_LOG_TO_STDOUT
+        value: "true"
+      - key: RAILS_SERVE_STATIC_FILES
+        value: "true"
+      - key: SOLID_QUEUE_IN_PUMA
+        value: "1"
       - key: DATABASE_URL
         fromDatabase:
           name: my-app-db
           property: connectionString
       - key: RAILS_MASTER_KEY
         sync: false
+
+  - type: cron
+    name: overdue-check
+    runtime: ruby
+    plan: free
+    schedule: "30 0 * * *"
+    buildCommand: bundle install
+    startCommand: bin/rails runner "OverdueCheckJob.perform_now"
+    envVars:
+      - key: RAILS_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: my-app-db
+          property: connectionString
+      - key: RAILS_MASTER_KEY
+        sync: false
+
 databases:
   - name: my-app-db
-    plan: free # 無料プラン
+    plan: free
+    databaseName: myapp_production
+    user: myapp

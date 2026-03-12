@@ -1,0 +1,86 @@
+ディレクトリ,説明
+.claude/,Claude Code設定・カスタムコマンド格納ディレクトリ
+.claude/commands/,Claude Codeカスタムスラッシュコマンド格納ディレクトリ
+.claude/commands/kiro/,Kiro Spec-Driven Developmentコマンド格納ディレクトリ
+.devcontainer/,開発コンテナ（DevContainer）設定格納ディレクトリ
+.git/,Gitリポジトリ管理ディレクトリ
+.github/,GitHub設定格納ディレクトリ
+.github/workflows/,GitHub ActionsワークフローCI/CD設定格納ディレクトリ
+.kamal/,Kamalデプロイ設定・フック格納ディレクトリ
+.kamal/hooks/,デプロイライフサイクルフックスクリプト格納ディレクトリ
+.kiro/,Kiro Spec-Driven Development設定・仕様格納ディレクトリ
+.kiro/settings/,Kiro AIルール・テンプレート設定格納ディレクトリ
+.kiro/settings/rules/,AI開発ルール定義格納ディレクトリ
+.kiro/settings/templates/,仕様書・ステアリングテンプレート格納ディレクトリ
+.kiro/settings/templates/specs/,仕様書テンプレート格納ディレクトリ
+.kiro/settings/templates/steering/,ステアリングドキュメントテンプレート格納ディレクトリ
+.kiro/settings/templates/steering-custom/,カスタムステアリングテンプレート格納ディレクトリ
+.kiro/specs/,機能仕様格納ディレクトリ
+.kiro/specs/equipment-management/,備品管理機能仕様（要件・設計・タスク）格納ディレクトリ
+.ruby-lsp/,Ruby LSP（Language Server Protocol）キャッシュ・設定格納ディレクトリ
+.serena/,Serena MCP設定格納ディレクトリ
+app/,アプリケーションのメインコード格納ディレクトリ
+app/assets/,静的アセット（CSS・画像）格納ディレクトリ
+app/assets/builds/,ビルド済みアセット出力ディレクトリ（Tailwind CSSビルド結果）
+app/assets/images/,画像ファイル格納ディレクトリ
+app/assets/stylesheets/,スタイルシート格納ディレクトリ
+app/assets/tailwind/,Tailwind CSSソースファイル格納ディレクトリ
+app/controllers/,コントローラー格納ディレクトリ
+app/controllers/admin/,管理者向けコントローラー格納ディレクトリ
+app/controllers/concerns/,コントローラー共通モジュール格納ディレクトリ
+app/helpers/,ビューヘルパーメソッド格納ディレクトリ
+app/javascript/,JavaScriptソースファイル格納ディレクトリ
+app/javascript/controllers/,Stimulusコントローラー格納ディレクトリ
+app/jobs/,バックグラウンドジョブ格納ディレクトリ
+app/mailers/,メーラー（メール送信クラス）格納ディレクトリ
+app/models/,モデル格納ディレクトリ
+app/models/concerns/,モデル共通モジュール格納ディレクトリ
+app/policies/,Pundit認可ポリシー格納ディレクトリ
+app/services/,ビジネスロジックサービスクラス格納ディレクトリ
+app/views/,ビュー（テンプレート）格納ディレクトリ
+app/views/admin/,管理者向けビュー格納ディレクトリ
+app/views/admin/dashboards/,管理者ダッシュボードビュー格納ディレクトリ
+app/views/admin/users/,管理者ユーザー管理ビュー格納ディレクトリ
+app/views/devise/,Devise認証ビュー格納ディレクトリ
+app/views/devise/registrations/,ユーザー登録・アカウント編集ビュー格納ディレクトリ
+app/views/devise/sessions/,ログインビュー格納ディレクトリ
+app/views/equipments/,備品管理ビュー格納ディレクトリ
+app/views/layouts/,レイアウトテンプレート格納ディレクトリ
+app/views/loan_mailer/,貸出メール本文テンプレート格納ディレクトリ
+app/views/loans/,貸出管理ビュー格納ディレクトリ
+app/views/mypages/,マイページビュー格納ディレクトリ
+app/views/pwa/,PWA関連ファイル（マニフェスト・ServiceWorker）格納ディレクトリ
+bin/,実行スクリプト格納ディレクトリ
+config/,アプリケーション設定ファイル格納ディレクトリ
+config/environments/,環境別設定ファイル格納ディレクトリ（development・test・production）
+config/initializers/,起動時初期化スクリプト格納ディレクトリ
+config/locales/,i18n国際化ロケールファイル格納ディレクトリ
+db/,データベース関連ファイル格納ディレクトリ
+db/migrate/,データベースマイグレーションファイル格納ディレクトリ
+docs/,プロジェクトドキュメント格納ディレクトリ
+lib/,独自ライブラリ・Rakeタスク格納ディレクトリ
+lib/tasks/,カスタムRakeタスク格納ディレクトリ
+public/,静的公開ファイル格納ディレクトリ（エラーページ等）
+script/,開発・運用補助スクリプト格納ディレクトリ
+spec/,RSpecテストファイル格納ディレクトリ
+spec/factories/,FactoryBotテストデータファクトリ格納ディレクトリ
+spec/integration/,統合テスト格納ディレクトリ
+spec/jobs/,ジョブテスト格納ディレクトリ
+spec/mailers/,メーラーテスト格納ディレクトリ
+spec/models/,モデルテスト格納ディレクトリ
+spec/policies/,Punditポリシーテスト格納ディレクトリ
+spec/requests/,リクエストスペック（コントローラーテスト）格納ディレクトリ
+spec/requests/admin/,管理者向けリクエストスペック格納ディレクトリ
+spec/services/,サービスクラステスト格納ディレクトリ
+spec/support/,テストサポート・共通設定格納ディレクトリ
+test/,Minitest標準テストディレクトリ（主にRSpecを使用）
+test/controllers/,コントローラーテスト格納ディレクトリ
+test/fixtures/,テストフィクスチャデータ格納ディレクトリ
+test/fixtures/files/,テスト用添付ファイル格納ディレクトリ
+test/helpers/,ヘルパーテスト格納ディレクトリ
+test/integration/,統合テスト格納ディレクトリ
+test/mailers/,メーラーテスト格納ディレクトリ
+test/models/,モデルテスト格納ディレクトリ
+test/system/,システムテスト格納ディレクトリ
+vendor/,サードパーティライブラリ格納ディレクトリ
+vendor/javascript/,ベンダーJavaScriptファイル格納ディレクトリ
