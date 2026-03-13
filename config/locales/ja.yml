@@ -54,6 +54,8 @@ ja:
         expected_return_date: "返却予定日"
         actual_return_date: "実返却日"
         status: "ステータス"
+      category:
+        name: "カテゴリ名"
       user:
         email: "メールアドレス"
         password: "パスワード"

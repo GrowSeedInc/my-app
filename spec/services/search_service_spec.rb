@@ -168,4 +168,109 @@ RSpec.describe SearchService do
       expect(result.total_count).to eq(1)
     end
   end
+
+  describe "#search_categories" do
+    let!(:cat_pc)     { create(:category, name: "PC機器") }
+    let!(:cat_furn)   { create(:category, name: "家具") }
+    let!(:cat_statio) { create(:category, name: "文具") }
+
+    before do
+      create_list(:equipment, 3, category: cat_pc)
+      create_list(:equipment, 1, category: cat_furn)
+      # cat_statio には備品なし
+    end
+
+    context "キーワード検索" do
+      it "カテゴリ名の部分一致で絞り込む" do
+        result = service.search_categories(keyword: "PC")
+        expect(result.records.map(&:name)).to include("PC機器")
+        expect(result.records.map(&:name)).not_to include("家具")
+      end
+
+      it "大文字小文字を区別しない" do
+        result = service.search_categories(keyword: "pc")
+        expect(result.records.map(&:name)).to include("PC機器")
+      end
+
+      it "検索結果が0件の場合は空のリストを返す" do
+        result = service.search_categories(keyword: "存在しないカテゴリ")
+        expect(result.total_count).to eq(0)
+      end
+
+      it "キーワード未指定は全件返す" do
+        result = service.search_categories
+        expect(result.total_count).to eq(3)
+      end
+    end
+
+    context "ソート" do
+      it "登録日（新しい順）でソートする" do
+        result = service.search_categories(sort: "created_at")
+        names = result.records.map(&:name)
+        expect(names.first).to eq(cat_statio.name)
+        expect(names.last).to eq(cat_pc.name)
+      end
+
+      it "登録日（古い順）でソートする" do
+        result = service.search_categories(sort: "created_at_asc")
+        names = result.records.map(&:name)
+        expect(names.first).to eq(cat_pc.name)
+        expect(names.last).to eq(cat_statio.name)
+      end
+
+      it "カテゴリ名（昇順）でソートする" do
+        result = service.search_categories(sort: "name")
+        names = result.records.map(&:name)
+        expect(names).to eq(names.sort)
+      end
+
+      it "カテゴリ名（降順）でソートする" do
+        result = service.search_categories(sort: "name_desc")
+        names = result.records.map(&:name)
+        expect(names).to eq(names.sort.reverse)
+      end
+
+      it "備品数（多い順）でソートする" do
+        result = service.search_categories(sort: "equipments_count")
+        counts = result.records.map(&:equipments_count).map(&:to_i)
+        expect(counts).to eq(counts.sort.reverse)
+      end
+
+      it "備品数（少ない順）でソートする" do
+        result = service.search_categories(sort: "equipments_count_asc")
+        counts = result.records.map(&:equipments_count).map(&:to_i)
+        expect(counts).to eq(counts.sort)
+      end
+
+      it "不正なsort値はデフォルト（登録日降順）で動く" do
+        expect { service.search_categories(sort: "invalid") }.not_to raise_error
+      end
+    end
+
+    context "ページネーション" do
+      before do
+        18.times { |i| create(:category, name: "追加カテゴリ#{i}") }
+      end
+
+      it "total_count は全件数を返す" do
+        result = service.search_categories
+        expect(result.total_count).to eq(21)
+      end
+
+      it "1ページ目は20件返す" do
+        result = service.search_categories(page: 1)
+        expect(result.records.to_a.size).to eq(20)
+      end
+
+      it "2ページ目は残り1件を返す" do
+        result = service.search_categories(page: 2)
+        expect(result.records.to_a.size).to eq(1)
+      end
+
+      it "total_pages を計算する" do
+        result = service.search_categories
+        expect(result.total_pages).to eq(2)
+      end
+    end
+  end
 end

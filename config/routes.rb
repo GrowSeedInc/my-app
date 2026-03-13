@@ -12,6 +12,7 @@ Rails.application.routes.draw do
   namespace :admin do
     resource :dashboard, only: :show
     resources :users
+    resources :categories
   end
 
   resource :mypage, only: :show
