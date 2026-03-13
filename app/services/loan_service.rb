@@ -5,6 +5,52 @@ class LoanService
   # @param expected_return_date [Date]
   # @return [Hash] { success: Boolean, loan: Loan, error: Symbol, message: String }
   def create(user:, equipment_id:, start_date:, expected_return_date:)
+    build_and_save_loan(
+      user: user,
+      equipment_id: equipment_id,
+      start_date: start_date,
+      expected_return_date: expected_return_date,
+      status: :pending_approval
+    )
+  end
+
+  # @param user [User] 貸出対象の利用者
+  # @param equipment_id [String] UUID
+  # @param start_date [Date]
+  # @param expected_return_date [Date]
+  # @return [Hash] { success: Boolean, loan: Loan, error: Symbol, message: String }
+  def admin_direct_entry(user:, equipment_id:, start_date:, expected_return_date:)
+    build_and_save_loan(
+      user: user,
+      equipment_id: equipment_id,
+      start_date: start_date,
+      expected_return_date: expected_return_date,
+      status: :active
+    )
+  end
+
+  # @param loan_id [String]
+  # @return [Hash]
+  def approve(loan_id:)
+    loan = Loan.find(loan_id)
+
+    unless loan.pending_approval?
+      return { success: false, error: :invalid_status_transition, message: "承認待ち状態の貸出のみ承認できます" }
+    end
+
+    loan.update!(status: :active)
+    { success: true, loan: loan }
+  end
+
+  # @param loan [Loan]
+  # @return [void]
+  def mark_overdue(loan:)
+    loan.update!(status: :overdue)
+  end
+
+  private
+
+  def build_and_save_loan(user:, equipment_id:, start_date:, expected_return_date:, status:)
     equipment = Equipment.kept.find_by(id: equipment_id)
 
     unless equipment
@@ -20,7 +66,7 @@ class LoanService
       equipment: equipment,
       start_date: start_date,
       expected_return_date: expected_return_date,
-      status: :pending_approval
+      status: status
     )
 
     unless loan.valid?
@@ -51,30 +97,7 @@ class LoanService
     result
   end
 
-  # @param loan_id [String]
-  # @return [Hash]
-  def approve(loan_id:)
-    loan = Loan.find(loan_id)
-
-    unless loan.pending_approval?
-      return { success: false, error: :invalid_status_transition, message: "承認待ち状態の貸出のみ承認できます" }
-    end
-
-    loan.update!(status: :active)
-    { success: true, loan: loan }
-  end
-
-  private
-
   def notification_service
     @notification_service ||= NotificationService.new
-  end
-
-  public
-
-  # @param loan [Loan]
-  # @return [void]
-  def mark_overdue(loan:)
-    loan.update!(status: :overdue)
   end
 end
