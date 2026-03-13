@@ -194,6 +194,110 @@ RSpec.describe LoanService do
     end
   end
 
+  describe "#admin_direct_entry" do
+    let(:equipment) { create(:equipment, total_count: 3, available_count: 3) }
+    let(:start_date) { Date.today }
+    let(:expected_return_date) { Date.today + 7 }
+
+    context "在庫がある場合" do
+      it "active ステータスの貸出レコードを作成し success: true を返す" do
+        result = service.admin_direct_entry(
+          user: member,
+          equipment_id: equipment.id,
+          start_date: start_date,
+          expected_return_date: expected_return_date
+        )
+
+        expect(result[:success]).to be true
+        expect(result[:loan]).to be_persisted
+        expect(result[:loan].status).to eq("active")
+        expect(result[:loan].user).to eq(member)
+      end
+
+      it "備品の貸出可能数が1減少する" do
+        expect {
+          service.admin_direct_entry(
+            user: member,
+            equipment_id: equipment.id,
+            start_date: start_date,
+            expected_return_date: expected_return_date
+          )
+        }.to change { equipment.reload.available_count }.by(-1)
+      end
+
+      it "貸出確認メールをキューに積む" do
+        expect {
+          service.admin_direct_entry(
+            user: member,
+            equipment_id: equipment.id,
+            start_date: start_date,
+            expected_return_date: expected_return_date
+          )
+        }.to have_enqueued_mail(LoanMailer, :loan_confirmation)
+      end
+    end
+
+    context "在庫がゼロの場合" do
+      let(:equipment) { create(:equipment, total_count: 1, available_count: 0) }
+
+      it "success: false と :out_of_stock を返す" do
+        result = service.admin_direct_entry(
+          user: member,
+          equipment_id: equipment.id,
+          start_date: start_date,
+          expected_return_date: expected_return_date
+        )
+
+        expect(result[:success]).to be false
+        expect(result[:error]).to eq(:out_of_stock)
+      end
+
+      it "貸出レコードは作成されない" do
+        expect {
+          service.admin_direct_entry(
+            user: member,
+            equipment_id: equipment.id,
+            start_date: start_date,
+            expected_return_date: expected_return_date
+          )
+        }.not_to change(Loan, :count)
+      end
+    end
+
+    context "論理削除済みの備品の場合" do
+      before { equipment.discard }
+
+      it "success: false と :equipment_not_available を返す" do
+        result = service.admin_direct_entry(
+          user: member,
+          equipment_id: equipment.id,
+          start_date: start_date,
+          expected_return_date: expected_return_date
+        )
+
+        expect(result[:success]).to be false
+        expect(result[:error]).to eq(:equipment_not_available)
+      end
+    end
+
+    context "修理中・廃棄の備品の場合" do
+      %i[repair disposed].each do |status|
+        it "#{status} の備品は登録できない" do
+          equipment.update!(status: status)
+          result = service.admin_direct_entry(
+            user: member,
+            equipment_id: equipment.id,
+            start_date: start_date,
+            expected_return_date: expected_return_date
+          )
+
+          expect(result[:success]).to be false
+          expect(result[:error]).to eq(:equipment_not_available)
+        end
+      end
+    end
+  end
+
   describe "#approve" do
     let(:loan) { create(:loan, status: :pending_approval) }
 

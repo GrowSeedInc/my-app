@@ -64,13 +64,13 @@ RSpec.describe "備品検索・一覧表示", type: :request do
       get equipments_path, params: { page: 1 }
       expect(response).to have_http_status(:ok)
       # ページネーションUIが表示されている
-      expect(response.body).to include("次のページ")
+      expect(response.body).to include("次へ →")
     end
 
     it "2ページ目は残り1件が表示される" do
       get equipments_path, params: { page: 2 }
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include("前のページ")
+      expect(response.body).to include("← 前へ")
     end
   end
 

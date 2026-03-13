@@ -13,6 +13,7 @@ Rails.application.routes.draw do
     resource :dashboard, only: :show
     resources :users
     resources :categories
+    resources :loans, only: [ :new, :create ]
   end
 
   resource :mypage, only: :show

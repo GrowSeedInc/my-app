@@ -18,4 +18,8 @@ class LoanPolicy < ApplicationPolicy
   def return_loan?
     user.admin? || record.user == user
   end
+
+  def admin_entry?
+    user.admin?
+  end
 end
