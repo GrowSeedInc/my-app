@@ -1,0 +1,15 @@
+<% content_for :title, "カテゴリ編集" %>
+
+<div class="max-w-lg">
+  <div class="flex justify-between items-center mb-4">
+    <div>
+      <h1 class="text-xl font-semibold text-gray-800">カテゴリ編集</h1>
+      <p class="text-sm text-gray-500 mt-0.5"><%= @category.name %></p>
+    </div>
+    <%= link_to "← 一覧に戻る", admin_categories_path, class: "text-sm text-gray-500 hover:text-gray-700" %>
+  </div>
+
+  <div class="bg-white border border-gray-200 rounded-lg p-6">
+    <%= render "form", category: @category %>
+  </div>
+</div>

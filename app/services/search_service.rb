@@ -15,6 +15,15 @@ class SearchService
     end
   end
 
+  CATEGORY_SORT_MAP = {
+    "name"                 => "categories.name ASC",
+    "name_desc"            => "categories.name DESC",
+    "created_at"           => "categories.created_at DESC",
+    "created_at_asc"       => "categories.created_at ASC",
+    "equipments_count"     => "equipments_count DESC",
+    "equipments_count_asc" => "equipments_count ASC"
+  }.freeze
+
   EQUIPMENT_SORT_MAP = {
     "name"                => "equipments.name ASC",
     "name_desc"           => "equipments.name DESC",
@@ -46,6 +55,31 @@ class SearchService
     scope = scope.order(Arel.sql(order_clause))
 
     paginate(scope, page)
+  end
+
+  # カテゴリを検索・ソートしてページネーション結果を返す
+  # @return [SearchResult]
+  def search_categories(keyword: nil, sort: nil, page: 1)
+    base_scope = Category.all
+    base_scope = base_scope.where("categories.name ILIKE ?", "%#{keyword}%") if keyword.present?
+
+    scope = base_scope.left_joins(:equipments)
+                      .group("categories.id")
+                      .select("categories.*, COUNT(equipments.id) AS equipments_count")
+
+    order_clause = CATEGORY_SORT_MAP[sort] || "categories.created_at DESC"
+    scope = scope.order(Arel.sql(order_clause))
+
+    current_page = [ page.to_i, 1 ].max
+    total_count  = base_scope.count
+    records      = scope.offset((current_page - 1) * PER_PAGE).limit(PER_PAGE)
+
+    SearchResult.new(
+      records:     records,
+      total_count: total_count,
+      page:        current_page,
+      per_page:    PER_PAGE
+    )
   end
 
   # 貸出をフィルタしてページネーション結果を返す
