@@ -16,7 +16,7 @@ puts "  管理者: #{admin.email}"
 members = [
   { name: "田中 花子", email: "hanako@example.com" },
   { name: "鈴木 一郎", email: "ichiro@example.com" },
-  { name: "佐藤 美咲", email: "misaki@example.com" },
+  { name: "佐藤 美咲", email: "misaki@example.com" }
 ].map do |attrs|
   user = User.find_or_create_by!(email: attrs[:email]) do |u|
     u.name     = attrs[:name]
@@ -34,7 +34,7 @@ categories = {
   mobile:   Category.find_or_create_by!(name: "モバイル機器"),
   av:       Category.find_or_create_by!(name: "AV機器"),
   furniture: Category.find_or_create_by!(name: "家具"),
-  office:   Category.find_or_create_by!(name: "オフィス用品"),
+  office:   Category.find_or_create_by!(name: "オフィス用品")
 }
 categories.each { |_, c| puts "  #{c.name}" }
 
@@ -85,7 +85,7 @@ equipments_data = [
     description: "3m。電源タップ。" },
   { name: "デジタルカメラ", management_number: "AV-003", category: categories[:av],
     total_count: 2, available_count: 2, status: :repair, low_stock_threshold: 1,
-    description: "Sony α7 IV。現在修理中。" },
+    description: "Sony α7 IV。現在修理中。" }
 ]
 
 equipments = equipments_data.map do |attrs|

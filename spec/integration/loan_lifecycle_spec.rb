@@ -84,7 +84,7 @@ RSpec.describe "貸出・返却ライフサイクル", type: :request do
       result2_status = response.status
 
       # 一方が成功（302）、もう一方が失敗（422）
-      statuses = [result1_status, result2_status]
+      statuses = [ result1_status, result2_status ]
       expect(statuses).to include(302)
       expect(statuses).to include(422)
       expect(Loan.count).to eq(1)

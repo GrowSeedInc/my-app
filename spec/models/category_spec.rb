@@ -32,5 +32,4 @@ RSpec.describe Category, type: :model do
       expect(another).to be_valid
     end
   end
-
 end
