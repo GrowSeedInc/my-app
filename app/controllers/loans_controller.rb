@@ -90,5 +90,4 @@ class LoansController < ApplicationController
   def loan_params
     params.require(:loan).permit(:equipment_id, :start_date, :expected_return_date)
   end
-
 end

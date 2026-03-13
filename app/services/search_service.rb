@@ -3,7 +3,7 @@ class SearchService
 
   SearchResult = Struct.new(:records, :total_count, :page, :per_page, keyword_init: true) do
     def total_pages
-      [(total_count.to_f / per_page).ceil, 1].max
+      [ (total_count.to_f / per_page).ceil, 1 ].max
     end
 
     def next_page
@@ -65,7 +65,7 @@ class SearchService
   private
 
   def paginate(scope, page)
-    current_page = [page.to_i, 1].max
+    current_page = [ page.to_i, 1 ].max
     total_count  = scope.except(:order).count
     records      = scope.offset((current_page - 1) * PER_PAGE).limit(PER_PAGE)
 
