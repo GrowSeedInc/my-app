@@ -3,7 +3,7 @@ require "rails_helper"
 # 認証・認可のE2Eテスト
 # 複数ステップを跨ぐ全フローを検証する
 RSpec.describe "認証・認可フロー", type: :request do
-  let(:admin)  { create(:user, :admin) }
+  let!(:admin) { create(:user, :admin) }
   let(:member) { create(:user) }
 
   describe "管理者によるユーザー登録〜貸出申請の全フロー" do

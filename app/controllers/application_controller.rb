@@ -7,6 +7,7 @@ class ApplicationController < ActionController::Base
   # Changes to the importmap will invalidate the etag for HTML responses
   stale_when_importmap_changes
 
+  before_action :redirect_to_setup_if_no_users
   before_action :authenticate_user!
   before_action :configure_permitted_parameters, if: :devise_controller?
 
@@ -19,6 +20,10 @@ class ApplicationController < ActionController::Base
   end
 
   private
+
+  def redirect_to_setup_if_no_users
+    redirect_to setup_path unless User.exists?
+  end
 
   def user_not_authorized
     render plain: "操作権限がありません", status: :forbidden

@@ -47,6 +47,25 @@ class LoansController < ApplicationController
     end
   end
 
+  def export_csv
+    authorize Loan, :export_csv?
+    loans = if current_user.admin?
+      scope = Loan.includes(:equipment, :user).order(created_at: :desc)
+      scope = scope.where(user_id: params[:user_id])           if params[:user_id].present?
+      scope = scope.where(equipment_id: params[:equipment_id]) if params[:equipment_id].present?
+      scope = scope.where(status: params[:status])             if params[:status].present?
+      scope = scope.where("start_date >= ?", params[:date_from])           if params[:date_from].present?
+      scope = scope.where("expected_return_date <= ?", params[:date_to])   if params[:date_to].present?
+      scope
+    else
+      current_user.loans.includes(:equipment, :user).order(created_at: :desc)
+    end
+    csv = CsvExportService.new.export_loans(loans)
+    send_data csv,
+              filename: "loans_#{Date.today.strftime('%Y%m%d')}.csv",
+              type: "text/csv; charset=utf-8"
+  end
+
   def approve
     authorize @loan
     result = loan_service.approve(loan_id: @loan.id)

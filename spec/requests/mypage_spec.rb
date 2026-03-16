@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "Mypage", type: :request do
-  let(:member)    { create(:user) }
+  let!(:member)   { create(:user) }
   let(:equipment) { create(:equipment) }
 
   describe "GET /mypage" do

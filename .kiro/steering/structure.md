@@ -31,6 +31,7 @@ Rails 標準のレイヤードアーキテクチャをベースに、**Service O
 **目的**: リクエスト受付・パラメータ検証・Service/Policy の呼び出し・レスポンス生成。
 **例**: `EquipmentsController`、`LoansController`、`Admin::DashboardsController`
 - 管理者専用機能は `admin/` サブディレクトリに名前空間化（`namespace :admin`）
+  - 例: `Admin::DashboardsController`、`Admin::CategoriesController`、`Admin::LoansController`、`Admin::UsersController`
 - すべての認証は `ApplicationController` の `before_action :authenticate_user!` に集約
 
 ### Jobs（`app/jobs/`）
@@ -64,7 +65,7 @@ spec/
   jobs/           # ジョブの実行ロジック
   mailers/        # メール生成
   requests/       # コントローラのHTTP統合テスト
-  integration/    # 複数レイヤーをまたぐフローテスト
+  integration/    # 複数レイヤーをまたぐフローテスト（貸出・返却フロー、検索・ダッシュボード等）
   factories/      # FactoryBot ファクトリ定義
 ```
 

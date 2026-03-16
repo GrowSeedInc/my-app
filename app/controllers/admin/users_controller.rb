@@ -52,6 +52,51 @@ class Admin::UsersController < ApplicationController
     end
   end
 
+  def export_csv
+    authorize User, :export_csv?
+    csv = CsvExportService.new.export_users(User.order(:email))
+    send_data csv,
+              filename: "users_#{Date.today.strftime('%Y%m%d')}.csv",
+              type: "text/csv; charset=utf-8"
+  end
+
+  def import_template
+    authorize User, :import_csv?
+    require "csv"
+    headers = %w[名前 メールアドレス ロール]
+    csv = "\xEF\xBB\xBF" + CSV.generate(encoding: "UTF-8") { |c| c << headers }
+    send_data csv,
+              filename: "users_template.csv",
+              type: "text/csv; charset=utf-8"
+  end
+
+  def import_csv
+    authorize User, :import_csv?
+
+    file = params[:file]
+    unless file.present?
+      return redirect_to admin_users_path, alert: "ファイルを選択してください"
+    end
+    if file.size > 5.megabytes
+      return redirect_to admin_users_path, alert: "ファイルサイズは5MB以下にしてください"
+    end
+    unless CsvImportService.new.csv_file?(file)
+      return redirect_to admin_users_path, alert: "CSVファイルを選択してください"
+    end
+
+    result = CsvImportService.new.import_users(file)
+
+    if result[:success]
+      redirect_to admin_users_path,
+                  notice: "#{result[:message]}（初期パスワード: password123 — ユーザーに変更を促してください）"
+    else
+      flash[:import_errors] = result[:errors]
+      redirect_to admin_users_path, alert: result[:message]
+    end
+  rescue ArgumentError => e
+    redirect_to admin_users_path, alert: e.message
+  end
+
   private
 
   def set_user

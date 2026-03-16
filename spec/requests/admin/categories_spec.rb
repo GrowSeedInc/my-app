@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "Admin::Categories", type: :request do
-  let(:admin)    { create(:user, :admin) }
+  let!(:admin)   { create(:user, :admin) }
   let(:member)   { create(:user) }
   let!(:category) { create(:category, name: "テストカテゴリ") }
 
