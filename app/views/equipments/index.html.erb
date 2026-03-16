@@ -141,7 +141,8 @@
             <td class="px-4 py-3 text-sm text-gray-500 whitespace-nowrap"><%= equipment.category&.name || "—" %></td>
             <td class="px-4 py-3 text-sm text-gray-600 text-center whitespace-nowrap"><%= equipment.total_count %></td>
             <td class="px-4 py-3 text-sm text-center whitespace-nowrap">
-              <% if equipment.available_count > equipment.total_count %>
+              <% over_loaned = current_user.admin? && (@active_loans_by_equipment[equipment.id] || []).size > equipment.total_count %>
+              <% if over_loaned %>
                 <span class="text-orange-600 font-medium" title="在庫不整合: 貸出数が総数を超えています">
                   <%= equipment.available_count %> ⚠
                 </span>

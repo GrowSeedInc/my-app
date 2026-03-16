@@ -93,6 +93,8 @@ class Admin::UsersController < ApplicationController
       flash[:import_errors] = result[:errors]
       redirect_to admin_users_path, alert: result[:message]
     end
+  rescue ArgumentError => e
+    redirect_to admin_users_path, alert: e.message
   end
 
   private

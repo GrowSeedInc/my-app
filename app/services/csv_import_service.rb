@@ -35,13 +35,19 @@ class CsvImportService
     return error_result(errors) if errors.any?
 
     count = 0
+    save_errors = []
     ActiveRecord::Base.transaction do
-      rows.each do |row|
+      rows.each_with_index do |row, idx|
         result = CategoryService.new.create(name: row["カテゴリ名"].strip)
-        raise ActiveRecord::Rollback unless result[:success]
+        unless result[:success]
+          save_errors << { row: idx + 2, message: result[:category]&.errors&.full_messages&.join(", ") || "登録に失敗しました" }
+          raise ActiveRecord::Rollback
+        end
         count += 1
       end
     end
+
+    return error_result(save_errors) if save_errors.any?
 
     { success: true, count: count, errors: [], message: "#{count}件のカテゴリを登録しました" }
   end
@@ -87,18 +93,24 @@ class CsvImportService
     return error_result(errors) if errors.any?
 
     count = 0
+    save_errors = []
     ActiveRecord::Base.transaction do
-      rows.each do |row|
+      rows.each_with_index do |row, idx|
         result = UserService.new.create(
           name:     row["名前"].strip,
           email:    row["メールアドレス"].strip,
           password: "password123",
           role:     row["ロール"]&.strip.presence || "member"
         )
-        raise ActiveRecord::Rollback unless result[:success]
+        unless result[:success]
+          save_errors << { row: idx + 2, message: result[:user]&.errors&.full_messages&.join(", ") || "登録に失敗しました" }
+          raise ActiveRecord::Rollback
+        end
         count += 1
       end
     end
+
+    return error_result(save_errors) if save_errors.any?
 
     { success: true, count: count, errors: [], message: "#{count}件のユーザーを登録しました（初期パスワード: password123）" }
   end
@@ -127,7 +139,7 @@ class CsvImportService
           errors << { row: row_num, message: "管理番号 '#{management_number}' がCSV内で重複しています" }
         end
 
-        if Equipment.kept.exists?(management_number: management_number)
+        if Equipment.exists?(management_number: management_number)
           errors << { row: row_num, message: "管理番号 '#{management_number}' は既に登録されています" }
         end
       end
@@ -152,8 +164,9 @@ class CsvImportService
     return error_result(errors) if errors.any?
 
     count = 0
+    save_errors = []
     ActiveRecord::Base.transaction do
-      rows.each do |row|
+      rows.each_with_index do |row, idx|
         category_name     = row["カテゴリ名"]&.strip
         low_stock_raw     = row["在庫警告閾値"]&.strip
         low_stock         = low_stock_raw.present? ? low_stock_raw.to_i : 1
@@ -166,13 +179,18 @@ class CsvImportService
           available_count:    row["総数"].strip.to_i,
           category_id:        category&.id,
           status:             row["ステータス"]&.strip.presence || "available",
-          low_stock_threshold: low_stock.positive? ? low_stock : 1,
+          low_stock_threshold: low_stock,
           description:        row["説明"]&.strip
         )
-        raise ActiveRecord::Rollback unless result[:success]
+        unless result[:success]
+          save_errors << { row: idx + 2, message: result[:equipment]&.errors&.full_messages&.join(", ") || "登録に失敗しました" }
+          raise ActiveRecord::Rollback
+        end
         count += 1
       end
     end
+
+    return error_result(save_errors) if save_errors.any?
 
     { success: true, count: count, errors: [], message: "#{count}件の備品を登録しました" }
   end
@@ -308,8 +326,12 @@ class CsvImportService
     updated  = 0
     warnings = []
 
+    active_counts = Loan.where(status: %w[active overdue])
+                        .group(:equipment_id)
+                        .count
+
     Equipment.kept.find_each do |equipment|
-      active_loan_count = equipment.loans.where(status: %w[active overdue]).count
+      active_loan_count = active_counts[equipment.id] || 0
       new_available     = equipment.total_count - active_loan_count
 
       if active_loan_count > equipment.total_count

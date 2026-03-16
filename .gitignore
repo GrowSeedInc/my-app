@@ -33,3 +33,8 @@
 # Ignore key files for decrypting credentials and more.
 /config/*.key
 
+# Local Claude Code settings
+/.claude/settings.local.json
+
+# RSpec test results (auto-generated)
+/spec/examples.txt

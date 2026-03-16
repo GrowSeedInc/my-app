@@ -79,6 +79,8 @@ class Admin::LoansController < ApplicationController
       flash[:import_errors] = result[:errors]
       redirect_to loans_path, alert: result[:message]
     end
+  rescue ArgumentError => e
+    redirect_to loans_path, alert: e.message
   end
 
   private

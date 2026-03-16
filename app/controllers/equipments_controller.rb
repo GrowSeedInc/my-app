@@ -96,6 +96,8 @@ class EquipmentsController < ApplicationController
       flash[:import_errors] = result[:errors]
       redirect_to equipments_path, alert: result[:message]
     end
+  rescue ArgumentError => e
+    redirect_to equipments_path, alert: e.message
   end
 
   private
@@ -137,7 +139,8 @@ class EquipmentsController < ApplicationController
     end
     scope = scope.where(category_id: params[:category_id]) if params[:category_id].present?
     scope = scope.where(status: params[:status]) if params[:status].present?
-    scope.order("equipments.created_at DESC")
+    order_clause = SearchService::EQUIPMENT_SORT_MAP[params[:sort]] || "equipments.created_at DESC"
+    scope.order(Arel.sql(order_clause))
   end
 
   def set_equipment
