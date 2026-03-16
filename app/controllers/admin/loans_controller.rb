@@ -43,6 +43,44 @@ class Admin::LoansController < ApplicationController
     end
   end
 
+  def import_template
+    authorize Loan, :import_csv?
+    require "csv"
+    headers = %w[管理番号 メールアドレス ステータス 開始日 予定返却日 実返却日]
+    csv = "\xEF\xBB\xBF" + CSV.generate(encoding: "UTF-8") { |c| c << headers }
+    send_data csv,
+              filename: "loans_template.csv",
+              type: "text/csv; charset=utf-8"
+  end
+
+  def import_csv
+    authorize Loan, :import_csv?
+
+    file = params[:file]
+    unless file.present?
+      return redirect_to loans_path, alert: "ファイルを選択してください"
+    end
+    if file.size > 5.megabytes
+      return redirect_to loans_path, alert: "ファイルサイズは5MB以下にしてください"
+    end
+    unless CsvImportService.new.csv_file?(file)
+      return redirect_to loans_path, alert: "CSVファイルを選択してください"
+    end
+
+    result = CsvImportService.new.import_loans(file)
+
+    if result[:success]
+      msg = result[:message]
+      if result[:warnings].any?
+        msg += "（警告: #{result[:warnings].size}件の在庫不整合 — 備品管理画面で確認してください）"
+      end
+      redirect_to loans_path, notice: msg
+    else
+      flash[:import_errors] = result[:errors]
+      redirect_to loans_path, alert: result[:message]
+    end
+  end
+
   private
 
   def load_form_data

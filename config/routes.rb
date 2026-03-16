@@ -11,20 +11,49 @@ Rails.application.routes.draw do
 
   namespace :admin do
     resource :dashboard, only: :show
-    resources :users
-    resources :categories
-    resources :loans, only: [ :new, :create ]
+    resources :users do
+      collection do
+        get  :export_csv
+        get  :import_template
+        post :import_csv
+      end
+    end
+    resources :categories do
+      collection do
+        get  :export_csv
+        get  :import_template
+        post :import_csv
+      end
+    end
+    resources :loans, only: [ :new, :create ] do
+      collection do
+        get  :import_template
+        post :import_csv
+      end
+    end
   end
 
   resource :mypage, only: :show
 
-  resources :equipments
+  resources :equipments do
+    collection do
+      get  :export_csv
+      get  :import_template
+      post :import_csv
+    end
+  end
   resources :loans, only: [ :index, :new, :create ] do
+    collection do
+      get :export_csv
+    end
     member do
       patch :approve
       patch "return", action: :return_loan, as: :return
     end
   end
+
+  get  "/setup", to: "setups#new",    as: :setup
+  post "/setup", to: "setups#create"
 
   # Defines the root path route ("/")
   root "equipments#index"

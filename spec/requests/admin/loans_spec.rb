@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "Admin::Loans", type: :request do
-  let(:admin)  { create(:user, :admin) }
+  let!(:admin) { create(:user, :admin) }
   let(:member) { create(:user) }
   let(:target_user) { create(:user) }
   let(:equipment) { create(:equipment, total_count: 3, available_count: 3) }

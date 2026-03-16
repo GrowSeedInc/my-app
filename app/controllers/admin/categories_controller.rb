@@ -53,6 +53,48 @@ class Admin::CategoriesController < ApplicationController
     end
   end
 
+  def export_csv
+    authorize Category, :export_csv?
+    csv = CsvExportService.new.export_categories(Category.order(:name))
+    send_data csv,
+              filename: "categories_#{Date.today.strftime('%Y%m%d')}.csv",
+              type: "text/csv; charset=utf-8"
+  end
+
+  def import_template
+    authorize Category, :import_csv?
+    require "csv"
+    headers = %w[カテゴリ名]
+    csv = "\xEF\xBB\xBF" + CSV.generate(encoding: "UTF-8") { |c| c << headers }
+    send_data csv,
+              filename: "categories_template.csv",
+              type: "text/csv; charset=utf-8"
+  end
+
+  def import_csv
+    authorize Category, :import_csv?
+
+    file = params[:file]
+    unless file.present?
+      return redirect_to admin_categories_path, alert: "ファイルを選択してください"
+    end
+    if file.size > 5.megabytes
+      return redirect_to admin_categories_path, alert: "ファイルサイズは5MB以下にしてください"
+    end
+    unless CsvImportService.new.csv_file?(file)
+      return redirect_to admin_categories_path, alert: "CSVファイルを選択してください"
+    end
+
+    result = CsvImportService.new.import_categories(file)
+
+    if result[:success]
+      redirect_to admin_categories_path, notice: result[:message]
+    else
+      flash[:import_errors] = result[:errors]
+      redirect_to admin_categories_path, alert: result[:message]
+    end
+  end
+
   private
 
   def set_category

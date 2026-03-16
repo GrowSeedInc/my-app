@@ -81,6 +81,45 @@
     </div>
   </section>
 
+  <%# データ移行ガイド %>
+  <section>
+    <h2 class="text-base font-semibold text-gray-700 mb-3">データ移行ガイド</h2>
+    <div class="bg-amber-50 border border-amber-200 rounded-lg p-5">
+      <p class="text-sm text-amber-800 mb-3 font-medium">Render 無料プランの DB リセット後は以下の順序でインポートしてください：</p>
+      <ol class="space-y-2 text-sm text-amber-900">
+        <li class="flex items-start gap-2">
+          <span class="flex-shrink-0 w-5 h-5 bg-amber-400 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
+          <span>
+            <strong>カテゴリ</strong> — <%= link_to "カテゴリ管理 → CSV インポート", admin_categories_path, class: "text-blue-700 hover:underline" %>
+          </span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="flex-shrink-0 w-5 h-5 bg-amber-400 text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
+          <span>
+            <strong>ユーザー</strong> — <%= link_to "ユーザー管理 → CSV インポート", admin_users_path, class: "text-blue-700 hover:underline" %>
+            （初期パスワード: <code class="bg-amber-100 px-1 rounded text-xs font-mono">password123</code>）
+          </span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="flex-shrink-0 w-5 h-5 bg-amber-400 text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
+          <span>
+            <strong>備品</strong> — <%= link_to "備品一覧 → CSV インポート", equipments_path, class: "text-blue-700 hover:underline" %>
+          </span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="flex-shrink-0 w-5 h-5 bg-amber-400 text-white rounded-full flex items-center justify-center text-xs font-bold">4</span>
+          <span>
+            <strong>貸出履歴</strong> — <%= link_to "貸出一覧 → CSV インポート", loans_path, class: "text-blue-700 hover:underline" %>
+            （インポート後に在庫数が自動再計算されます）
+          </span>
+        </li>
+      </ol>
+      <p class="text-xs text-amber-700 mt-3">
+        各インポートは All-or-nothing（エラー時は全件ロールバック）です。エラーが発生した場合は CSV を修正して再実行してください。
+      </p>
+    </div>
+  </section>
+
   <%# 延滞中貸出一覧 %>
   <section>
     <h2 class="text-base font-semibold text-gray-700 mb-3 flex items-center gap-2">

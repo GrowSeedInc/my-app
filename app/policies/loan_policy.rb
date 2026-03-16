@@ -22,4 +22,7 @@ class LoanPolicy < ApplicationPolicy
   def admin_entry?
     user.admin?
   end
+
+  def export_csv? = true
+  def import_csv? = user.admin?
 end
