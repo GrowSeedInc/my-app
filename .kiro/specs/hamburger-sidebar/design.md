@@ -95,7 +95,7 @@ stateDiagram-v2
     初期化 --> Closed: localStorage=false またはモバイルデフォルト
 
     Open --> Closed: ハンバーガーボタンクリック
-    Open --> Closed: サイドバー外クリック（window click listener）
+    Open --> Closed: サイドバー外クリック（モバイルのみ・window click listener）
     Open --> Closed: モバイルスクリムクリック
 
     Closed --> Open: ハンバーガーボタンクリック
@@ -194,7 +194,7 @@ Targets:
 Actions（Public）:
   toggle()                          — 開閉をトグル（ハンバーガーボタンから呼ぶ）
   close()                           — サイドバーを閉じる（スクリムから呼ぶ）
-  handleWindowClick(event: Event)   — window click listener。panel 外クリックで close() を呼ぶ
+  handleWindowClick(event: Event)   — window click listener。モバイル（lg 未満）かつ panel 外クリック時のみ close() を呼ぶ。デスクトップでは何もしない
 
 Private（内部利用）:
   open()                            — 開く。targets にクラスを付与し aria-expanded=true、localStorage 保存
@@ -205,12 +205,12 @@ Private（内部利用）:
 
 **Pre / Post conditions**:
 - `toggle()` 前提条件: `panelTarget` が DOM に存在する
-- `handleWindowClick(event)` 前提条件: サイドバーが open 状態のときのみ `close()` を実行する（closed 時は何もしない）
+- `handleWindowClick(event)` 前提条件: サイドバーが open 状態、かつモバイルサイズ（`window.matchMedia("(min-width: 1024px)").matches === false`）のときのみ `close()` を実行する（デスクトップ・closed 時は何もしない）
 - `open()` / `close()` 事後条件: `hamburgerTarget.ariaExpanded` が状態と一致している
 
 **Implementation Notes**
 - Integration: `data-action="click@window->sidebar#handleWindowClick"` は `data-controller="sidebar"` 要素（ラッパー）に記述し、window イベントとして登録する
-- Validation: `handleWindowClick` 内では `panelTarget.contains(event.target)` を確認し、サイドバー内のクリックは無視する
+- Validation: `handleWindowClick` 内では先にデスクトップ判定（`window.matchMedia("(min-width: 1024px)").matches`）で早期 return し、次に `panelTarget.contains(event.target)` でサイドバー内クリックを無視する
 - Risks: Tailwind の本番ビルドで動的追加クラスが purge される可能性 → 使用する全クラス名を JS 内で完全形の文字列として記述するか CSS safelist に追加する
 
 ---

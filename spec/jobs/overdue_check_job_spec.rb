@@ -74,7 +74,7 @@ RSpec.describe OverdueCheckJob, type: :job do
     end
 
     context "複数の延滞ローンがある場合" do
-      let(:equipment2) { create(:equipment, management_number: "EQ-002") }
+      let(:equipment2) { create(:equipment) }
       let!(:loan1) do
         create(:loan, user: member, equipment: equipment,
                status: :active,
