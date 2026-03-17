@@ -21,17 +21,17 @@ RSpec.describe "CSV routes", type: :routing do
     end
   end
 
-  describe "Admin::CategoriesController CSV routes" do
-    it "routes GET /admin/categories/export_csv" do
-      expect(get: "/admin/categories/export_csv").to route_to("admin/categories#export_csv")
+  describe "Admin::CategoryMajorsController CSV routes" do
+    it "routes GET /admin/category_majors/export_csv" do
+      expect(get: "/admin/category_majors/export_csv").to route_to("admin/category_majors#export_csv")
     end
 
-    it "routes GET /admin/categories/import_template" do
-      expect(get: "/admin/categories/import_template").to route_to("admin/categories#import_template")
+    it "routes GET /admin/category_majors/import_template" do
+      expect(get: "/admin/category_majors/import_template").to route_to("admin/category_majors#import_template")
     end
 
-    it "routes POST /admin/categories/import_csv" do
-      expect(post: "/admin/categories/import_csv").to route_to("admin/categories#import_csv")
+    it "routes POST /admin/category_majors/import_csv" do
+      expect(post: "/admin/category_majors/import_csv").to route_to("admin/category_majors#import_csv")
     end
   end
 

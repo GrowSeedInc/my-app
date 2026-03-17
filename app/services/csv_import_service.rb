@@ -10,26 +10,16 @@ class CsvImportService
   def import_categories(file)
     rows = parse_csv(file)
     errors = []
-    names_in_csv = []
 
     rows.each_with_index do |row, idx|
-      row_num = idx + 2
-      name = row["カテゴリ名"]&.strip
+      row_num     = idx + 2
+      major_name  = row["大分類名"]&.strip
+      medium_name = row["中分類名"]&.strip
+      minor_name  = row["小分類名"]&.strip
 
-      if name.blank?
-        errors << { row: row_num, message: "カテゴリ名は必須です" }
-        next
-      end
-
-      if names_in_csv.include?(name)
-        errors << { row: row_num, message: "カテゴリ名 '#{name}' がCSV内で重複しています" }
-      end
-
-      if Category.exists?(name: name)
-        errors << { row: row_num, message: "カテゴリ名 '#{name}' は既に登録されています" }
-      end
-
-      names_in_csv << name
+      errors << { row: row_num, message: "大分類名は必須です" } if major_name.blank?
+      errors << { row: row_num, message: "中分類名は必須です" } if medium_name.blank?
+      errors << { row: row_num, message: "小分類名は必須です" } if minor_name.blank?
     end
 
     return error_result(errors) if errors.any?
@@ -38,18 +28,23 @@ class CsvImportService
     save_errors = []
     ActiveRecord::Base.transaction do
       rows.each_with_index do |row, idx|
-        result = CategoryService.new.create(name: row["カテゴリ名"].strip)
-        unless result[:success]
-          save_errors << { row: idx + 2, message: result[:category]&.errors&.full_messages&.join(", ") || "登録に失敗しました" }
-          raise ActiveRecord::Rollback
-        end
+        major_name  = row["大分類名"].strip
+        medium_name = row["中分類名"].strip
+        minor_name  = row["小分類名"].strip
+
+        major  = Category.find_or_create_by!(name: major_name, level: :major, parent_id: nil)
+        medium = Category.find_or_create_by!(name: medium_name, level: :medium, parent_id: major.id)
+        Category.find_or_create_by!(name: minor_name, level: :minor, parent_id: medium.id)
         count += 1
+      rescue ActiveRecord::RecordInvalid => e
+        save_errors << { row: idx + 2, message: e.message }
+        raise ActiveRecord::Rollback
       end
     end
 
     return error_result(save_errors) if save_errors.any?
 
-    { success: true, count: count, errors: [], message: "#{count}件のカテゴリを登録しました" }
+    { success: true, count: count, errors: [], message: "#{count}件のカテゴリ階層を登録しました" }
   end
 
   # @param file [ActionDispatch::Http::UploadedFile]
@@ -126,7 +121,9 @@ class CsvImportService
       row_num           = idx + 2
       name              = row["備品名"]&.strip
       management_number = row["管理番号"]&.strip
-      category_name     = row["カテゴリ名"]&.strip
+      major_name        = row["大分類名"]&.strip
+      medium_name       = row["中分類名"]&.strip
+      minor_name        = row["小分類名"]&.strip
       status            = row["ステータス"]&.strip.presence || "available"
       total_count       = row["総数"]&.strip
 
@@ -144,8 +141,9 @@ class CsvImportService
         end
       end
 
-      if category_name.present? && !Category.exists?(name: category_name)
-        errors << { row: row_num, message: "カテゴリ '#{category_name}' が存在しません" }
+      category_specified = major_name.present? || medium_name.present? || minor_name.present?
+      if category_specified && !find_minor_category(major_name, medium_name, minor_name)
+        errors << { row: row_num, message: "カテゴリ '#{major_name} > #{medium_name} > #{minor_name}' が存在しません" }
       end
 
       unless VALID_EQUIPMENT_STATUSES.include?(status)
@@ -167,20 +165,23 @@ class CsvImportService
     save_errors = []
     ActiveRecord::Base.transaction do
       rows.each_with_index do |row, idx|
-        category_name     = row["カテゴリ名"]&.strip
-        low_stock_raw     = row["在庫警告閾値"]&.strip
-        low_stock         = low_stock_raw.present? ? low_stock_raw.to_i : 1
-        category          = category_name.present? ? Category.find_by(name: category_name) : nil
+        major_name    = row["大分類名"]&.strip
+        medium_name   = row["中分類名"]&.strip
+        minor_name    = row["小分類名"]&.strip
+        low_stock_raw = row["在庫警告閾値"]&.strip
+        low_stock     = low_stock_raw.present? ? low_stock_raw.to_i : 1
+        category_specified = major_name.present? || medium_name.present? || minor_name.present?
+        category      = category_specified ? find_minor_category(major_name, medium_name, minor_name) : nil
 
         result = EquipmentService.new.create(
-          name:               row["備品名"].strip,
-          management_number:  row["管理番号"].strip,
-          total_count:        row["総数"].strip.to_i,
-          available_count:    row["総数"].strip.to_i,
-          category_id:        category&.id,
-          status:             row["ステータス"]&.strip.presence || "available",
+          name:                row["備品名"].strip,
+          management_number:   row["管理番号"].strip,
+          total_count:         row["総数"].strip.to_i,
+          available_count:     row["総数"].strip.to_i,
+          category_id:         category&.id,
+          status:              row["ステータス"]&.strip.presence || "available",
           low_stock_threshold: low_stock,
-          description:        row["説明"]&.strip
+          description:         row["説明"]&.strip
         )
         unless result[:success]
           save_errors << { row: idx + 2, message: result[:equipment]&.errors&.full_messages&.join(", ") || "登録に失敗しました" }
@@ -344,6 +345,18 @@ class CsvImportService
     end
 
     { updated: updated, warnings: warnings }
+  end
+
+  def find_minor_category(major_name, medium_name, minor_name)
+    return nil if major_name.blank? || medium_name.blank? || minor_name.blank?
+
+    major  = Category.major.find_by(name: major_name)
+    return nil unless major
+
+    medium = Category.medium.find_by(name: medium_name, parent_id: major.id)
+    return nil unless medium
+
+    Category.minor.find_by(name: minor_name, parent_id: medium.id)
   end
 
   def error_result(errors)

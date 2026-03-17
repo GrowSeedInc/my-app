@@ -4,8 +4,8 @@ RSpec.describe SearchService do
   let(:service) { described_class.new }
 
   describe "#search_equipments" do
-    let(:cat1) { create(:category, name: "PC機器") }
-    let(:cat2) { create(:category, name: "家具") }
+    let(:cat1) { create(:category, :minor, name: "PC機器") }
+    let(:cat2) { create(:category, :minor, name: "家具") }
 
     before do
       create(:equipment, name: "ノートPC",    management_number: "PC-001", description: "軽量ノートPC",           category: cat1, total_count: 5,  available_count: 3, status: :available)
@@ -38,8 +38,20 @@ RSpec.describe SearchService do
     end
 
     context "カテゴリフィルタ" do
-      it "指定カテゴリの備品のみ返す" do
-        result = service.search_equipments(category_id: cat1.id)
+      it "category_minor_id で該当小分類の備品のみ返す" do
+        result = service.search_equipments(category_minor_id: cat1.id)
+        expect(result.total_count).to eq(2)
+        expect(result.records.map(&:name)).to all(include("PC"))
+      end
+
+      it "category_medium_id で配下の全備品を返す" do
+        result = service.search_equipments(category_medium_id: cat1.parent.id)
+        expect(result.total_count).to eq(2)
+        expect(result.records.map(&:name)).to all(include("PC"))
+      end
+
+      it "category_major_id で配下の全備品を返す" do
+        result = service.search_equipments(category_major_id: cat1.parent.parent.id)
         expect(result.total_count).to eq(2)
         expect(result.records.map(&:name)).to all(include("PC"))
       end
@@ -173,12 +185,6 @@ RSpec.describe SearchService do
     let!(:cat_pc)     { create(:category, name: "PC機器") }
     let!(:cat_furn)   { create(:category, name: "家具") }
     let!(:cat_statio) { create(:category, name: "文具") }
-
-    before do
-      create_list(:equipment, 3, category: cat_pc)
-      create_list(:equipment, 1, category: cat_furn)
-      # cat_statio には備品なし
-    end
 
     context "キーワード検索" do
       it "カテゴリ名の部分一致で絞り込む" do

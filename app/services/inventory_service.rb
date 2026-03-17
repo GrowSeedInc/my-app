@@ -13,15 +13,16 @@ class InventoryService
     { success: false, equipment: equipment, error: :invalid_status, message: e.message }
   end
 
-  # カテゴリ別の在庫サマリーを返す
-  # @return [Array<Hash>] カテゴリ別集計の配列
+  # 大分類単位の在庫サマリーを返す
+  # @return [Array<Hash>] 大分類別集計の配列
   def dashboard_summary
-    equipments_by_category = Equipment.kept.includes(:category).group_by(&:category)
-    equipments_by_category.map do |category, equipments|
+    all_equipments = Equipment.kept.includes(category: { parent: :parent })
+    equipments_by_major = all_equipments.group_by { |e| e.category&.parent&.parent }
+    equipments_by_major.map do |major, equipments|
       total     = equipments.sum(&:total_count)
       available = equipments.sum(&:available_count)
       {
-        category:        category,
+        category:        major,
         total_count:     total,
         available_count: available,
         in_use_count:    total - available,

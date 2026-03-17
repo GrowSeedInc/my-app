@@ -54,8 +54,10 @@ RSpec.describe InventoryService do
   end
 
   describe "#dashboard_summary" do
-    let(:cat1) { create(:category, name: "PC機器") }
-    let(:cat2) { create(:category, name: "家具") }
+    let(:cat1) { create(:category, :minor, name: "PC機器") }
+    let(:cat2) { create(:category, :minor, name: "家具") }
+    let(:major1) { cat1.parent.parent }
+    let(:major2) { cat2.parent.parent }
 
     before do
       create(:equipment, category: cat1, total_count: 5, available_count: 3)
@@ -67,27 +69,27 @@ RSpec.describe InventoryService do
       expect(service.dashboard_summary).to be_an(Array)
     end
 
-    it "カテゴリ別に total_count を集計する" do
+    it "大分類別に total_count を集計する" do
       summary = service.dashboard_summary
-      cat1_row = summary.find { |s| s[:category] == cat1 }
+      cat1_row = summary.find { |s| s[:category] == major1 }
       expect(cat1_row[:total_count]).to eq(8)
     end
 
-    it "カテゴリ別に available_count を集計する" do
+    it "大分類別に available_count を集計する" do
       summary = service.dashboard_summary
-      cat1_row = summary.find { |s| s[:category] == cat1 }
+      cat1_row = summary.find { |s| s[:category] == major1 }
       expect(cat1_row[:available_count]).to eq(6)
     end
 
     it "in_use_count を計算する（total - available）" do
       summary = service.dashboard_summary
-      cat1_row = summary.find { |s| s[:category] == cat1 }
+      cat1_row = summary.find { |s| s[:category] == major1 }
       expect(cat1_row[:in_use_count]).to eq(2)
     end
 
     it "equipment_count を返す" do
       summary = service.dashboard_summary
-      cat1_row = summary.find { |s| s[:category] == cat1 }
+      cat1_row = summary.find { |s| s[:category] == major1 }
       expect(cat1_row[:equipment_count]).to eq(2)
     end
 
@@ -95,7 +97,7 @@ RSpec.describe InventoryService do
       discarded = create(:equipment, category: cat1, total_count: 100, available_count: 100)
       discarded.discard
       summary = service.dashboard_summary
-      cat1_row = summary.find { |s| s[:category] == cat1 }
+      cat1_row = summary.find { |s| s[:category] == major1 }
       expect(cat1_row[:total_count]).to eq(8)
     end
   end

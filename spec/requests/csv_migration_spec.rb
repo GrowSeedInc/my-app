@@ -55,7 +55,7 @@ RSpec.describe "CSV移行フロー", type: :request do
   # ─── 備品 CSV インポート ─────────────────────────────────────────────────────
 
   describe "POST /equipments/import_csv" do
-    let!(:category) { create(:category, name: "PC機器") }
+    let!(:category) { create(:category, :minor, name: "PC機器") }
 
     context "管理者の場合" do
       before { sign_in admin }
@@ -154,14 +154,14 @@ RSpec.describe "CSV移行フロー", type: :request do
 
   # ─── カテゴリ CSV エクスポート ───────────────────────────────────────────────
 
-  describe "GET /admin/categories/export_csv" do
-    before { create(:category) }
+  describe "GET /admin/category_majors/export_csv" do
+    before { create(:category, :minor) }
 
     context "管理者の場合" do
       before { sign_in admin }
 
       it "Content-Type: text/csv を返す" do
-        get export_csv_admin_categories_path
+        get export_csv_admin_category_majors_path
         expect(response.content_type).to include("text/csv")
       end
     end
@@ -170,7 +170,7 @@ RSpec.describe "CSV移行フロー", type: :request do
       before { sign_in member }
 
       it "403を返す" do
-        get export_csv_admin_categories_path
+        get export_csv_admin_category_majors_path
         expect(response).to have_http_status(:forbidden)
       end
     end
@@ -178,22 +178,22 @@ RSpec.describe "CSV移行フロー", type: :request do
 
   # ─── カテゴリ CSV インポート ──────────────────────────────────────────────────
 
-  describe "POST /admin/categories/import_csv" do
+  describe "POST /admin/category_majors/import_csv" do
     context "管理者の場合" do
       before { sign_in admin }
 
       it "正常データでカテゴリを登録しリダイレクトする" do
-        csv = csv_data(%w[カテゴリ名], [["PC機器"]])
+        csv = csv_data(%w[大分類名 中分類名 小分類名], [["PC機器", "ノートPC", "ThinkPad"]])
         expect {
-          post import_csv_admin_categories_path, params: { file: upload_csv(csv) }
-        }.to change(Category, :count).by(1)
-        expect(response).to redirect_to(admin_categories_path)
+          post import_csv_admin_category_majors_path, params: { file: upload_csv(csv) }
+        }.to change(Category, :count).by(3)
+        expect(response).to redirect_to(admin_category_majors_path)
       end
 
       it "バリデーションエラー時はリダイレクトする" do
-        csv = csv_data(%w[カテゴリ名], [[""]])
-        post import_csv_admin_categories_path, params: { file: upload_csv(csv) }
-        expect(response).to redirect_to(admin_categories_path)
+        csv = csv_data(%w[大分類名 中分類名 小分類名], [["", "", ""]])
+        post import_csv_admin_category_majors_path, params: { file: upload_csv(csv) }
+        expect(response).to redirect_to(admin_category_majors_path)
       end
     end
 
@@ -201,8 +201,8 @@ RSpec.describe "CSV移行フロー", type: :request do
       before { sign_in member }
 
       it "403を返す" do
-        csv = csv_data(%w[カテゴリ名], [])
-        post import_csv_admin_categories_path, params: { file: upload_csv(csv) }
+        csv = csv_data(%w[大分類名 中分類名 小分類名], [])
+        post import_csv_admin_category_majors_path, params: { file: upload_csv(csv) }
         expect(response).to have_http_status(:forbidden)
       end
     end
@@ -309,9 +309,9 @@ RSpec.describe "CSV移行フロー", type: :request do
     before { sign_in admin }
 
     it "順序インポート後に在庫数が正確である" do
-      # Step 1: カテゴリインポート
-      post import_csv_admin_categories_path,
-           params: { file: upload_csv(csv_data(%w[カテゴリ名], [["PC機器"]])) }
+      # Step 1: カテゴリインポート（大分類名・中分類名・小分類名）
+      post import_csv_admin_category_majors_path,
+           params: { file: upload_csv(csv_data(%w[大分類名 中分類名 小分類名], [["PC機器", "ノートPC", "ThinkPad"]])) }
       expect(Category.find_by(name: "PC機器")).to be_present
 
       # Step 2: ユーザーインポート

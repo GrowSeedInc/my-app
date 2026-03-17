@@ -103,12 +103,39 @@ RSpec.describe Equipment, type: :model do
 
   describe "アソシエーション" do
     it "カテゴリに属する" do
-      category = create(:category)
+      category = create(:category, :minor)
       equipment = build(:equipment, category: category)
       expect(equipment.category).to eq(category)
     end
 
     it "カテゴリなしでも有効である" do
+      equipment = build(:equipment, category: nil)
+      expect(equipment).to be_valid
+    end
+  end
+
+  describe "category_must_be_minor バリデーション" do
+    it "小分類カテゴリを設定した場合は有効である" do
+      minor = create(:category, :minor)
+      equipment = build(:equipment, category: minor)
+      expect(equipment).to be_valid
+    end
+
+    it "大分類カテゴリを設定した場合は無効である" do
+      major = create(:category, level: :major)
+      equipment = build(:equipment, category: major)
+      expect(equipment).not_to be_valid
+      expect(equipment.errors[:category]).to include("小分類（最下位カテゴリ）を選択してください")
+    end
+
+    it "中分類カテゴリを設定した場合は無効である" do
+      medium = create(:category, :medium)
+      equipment = build(:equipment, category: medium)
+      expect(equipment).not_to be_valid
+      expect(equipment.errors[:category]).to include("小分類（最下位カテゴリ）を選択してください")
+    end
+
+    it "カテゴリが nil の場合はスキップされる" do
       equipment = build(:equipment, category: nil)
       expect(equipment).to be_valid
     end

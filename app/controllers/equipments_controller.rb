@@ -15,6 +15,9 @@ class EquipmentsController < ApplicationController
   def new
     authorize Equipment
     @equipment = Equipment.new
+    @category_major = nil
+    @category_medium = nil
+    @category_minor = nil
   end
 
   def create
@@ -31,6 +34,15 @@ class EquipmentsController < ApplicationController
 
   def edit
     authorize @equipment
+    if (minor = @equipment.category)
+      @category_minor  = minor
+      @category_medium = minor.parent
+      @category_major  = @category_medium&.parent
+    else
+      @category_major = nil
+      @category_medium = nil
+      @category_minor = nil
+    end
   end
 
   def update
@@ -103,14 +115,16 @@ class EquipmentsController < ApplicationController
   private
 
   def setup_index_data
-    @categories = Category.order(:name)
+    @category_majors = Category.major.order(:name)
 
     search_result = search_service.search_equipments(
-      keyword:     params[:keyword],
-      category_id: params[:category_id],
-      status:      params[:status],
-      sort:        params[:sort],
-      page:        params[:page]
+      keyword:            params[:keyword],
+      category_major_id:  params[:category_major_id],
+      category_medium_id: params[:category_medium_id],
+      category_minor_id:  params[:category_minor_id],
+      status:             params[:status],
+      sort:               params[:sort],
+      page:               params[:page]
     )
     @equipments = search_result.records
     @pagination = search_result
@@ -129,7 +143,7 @@ class EquipmentsController < ApplicationController
   end
 
   def filtered_equipments_scope
-    scope = Equipment.kept.eager_load(:category)
+    scope = Equipment.kept.eager_load(category: { parent: :parent })
     if params[:keyword].present?
       p = "%#{params[:keyword]}%"
       scope = scope.where(
@@ -137,7 +151,17 @@ class EquipmentsController < ApplicationController
         p: p
       )
     end
-    scope = scope.where(category_id: params[:category_id]) if params[:category_id].present?
+    if params[:category_minor_id].present?
+      scope = scope.where(category_id: params[:category_minor_id])
+    elsif params[:category_medium_id].present?
+      scope = scope.where(category_id: Category.where(parent_id: params[:category_medium_id]).select(:id))
+    elsif params[:category_major_id].present?
+      scope = scope.where(
+        category_id: Category.where(
+          parent_id: Category.where(parent_id: params[:category_major_id]).select(:id)
+        ).select(:id)
+      )
+    end
     scope = scope.where(status: params[:status]) if params[:status].present?
     order_clause = SearchService::EQUIPMENT_SORT_MAP[params[:sort]] || "equipments.created_at DESC"
     scope.order(Arel.sql(order_clause))

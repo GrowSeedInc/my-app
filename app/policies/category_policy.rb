@@ -7,4 +7,6 @@ class CategoryPolicy < ApplicationPolicy
   def destroy?    = user.admin?
   def export_csv? = user.admin?
   def import_csv? = user.admin?
+  def by_major?   = true  # 認証済みユーザーなら誰でも可（連動セレクト用）
+  def by_medium?  = true  # 認証済みユーザーなら誰でも可（連動セレクト用）
 end

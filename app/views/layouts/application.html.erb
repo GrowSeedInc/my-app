@@ -42,8 +42,8 @@
                       class: "px-3 py-2 rounded transition-colors font-medium #{controller_name == 'dashboards' ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}" %>
                 <%= link_to "ユーザー管理", admin_users_path,
                       class: "px-3 py-2 rounded transition-colors font-medium #{controller_name == 'users' && controller.class.module_parent == Admin ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}" %>
-                <%= link_to "カテゴリ管理", admin_categories_path,
-                      class: "px-3 py-2 rounded transition-colors font-medium #{controller_name == 'categories' && controller.class.module_parent == Admin ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}" %>
+                <%= link_to "カテゴリ管理", admin_category_majors_path,
+                      class: "px-3 py-2 rounded transition-colors font-medium #{%w[category_majors category_mediums category_minors].include?(controller_name) && controller.class.module_parent == Admin ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}" %>
               <% end %>
             </nav>
 

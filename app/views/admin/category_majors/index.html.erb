@@ -1,0 +1,105 @@
+<% content_for :title, "大分類管理" %>
+
+<div>
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="text-xl font-semibold text-gray-800">大分類管理</h1>
+    <div class="flex gap-2">
+      <% if policy(Category).export_csv? %>
+        <%= link_to "CSV ダウンロード", export_csv_admin_category_majors_path,
+              class: "bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-2 rounded-md transition-colors" %>
+      <% end %>
+      <%= link_to "＋ 大分類を追加", new_admin_category_major_path,
+            class: "bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-md transition-colors" %>
+    </div>
+  </div>
+
+  <%# インポートエラー表示 %>
+  <% if flash[:import_errors].present? %>
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+      <h3 class="text-sm font-semibold text-red-800 mb-2">インポートエラー（全件ロールバック済み）</h3>
+      <table class="min-w-full text-xs">
+        <thead>
+          <tr class="text-left text-red-700">
+            <th class="pr-4 pb-1 font-medium">行番号</th>
+            <th class="pb-1 font-medium">エラー内容</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% flash[:import_errors].each do |err| %>
+            <tr class="border-t border-red-100">
+              <td class="pr-4 py-1 text-red-600"><%= err["row"] %>行目</td>
+              <td class="py-1 text-red-700"><%= err["message"] %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+
+  <%# CSV インポート %>
+  <% if policy(Category).import_csv? %>
+    <div class="bg-white border border-gray-200 rounded-lg p-4 mb-4">
+      <h3 class="text-sm font-semibold text-gray-700 mb-2">カテゴリ CSV インポート（大分類名・中分類名・小分類名）</h3>
+      <%= form_with url: import_csv_admin_category_majors_path, method: :post, multipart: true do |f| %>
+        <div class="flex items-center gap-3">
+          <%= f.file_field :file, accept: ".csv", id: "category_csv_file", class: "hidden",
+                onchange: "document.getElementById('category_csv_name').textContent = this.files[0]?.name || '選択されていません'" %>
+          <label for="category_csv_file"
+                 class="cursor-pointer bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-1.5 rounded-md transition-colors">
+            CSV を選択
+          </label>
+          <span id="category_csv_name" class="text-sm text-gray-500 truncate max-w-xs">選択されていません</span>
+          <%= f.submit "インポート", class: "bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-4 py-1.5 rounded-md cursor-pointer transition-colors" %>
+        </div>
+      <% end %>
+      <p class="text-xs text-gray-400 mt-1.5">
+        CSVファイル（5MB以下）
+        <%= link_to "テンプレートをダウンロード", import_template_admin_category_majors_path, class: "text-blue-600 hover:text-blue-800" %>
+      </p>
+    </div>
+  <% end %>
+
+  <%# 一覧テーブル %>
+  <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-slate-50">
+        <tr>
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">大分類名</th>
+          <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">中分類数</th>
+          <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">小分類数</th>
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">登録日時</th>
+          <th class="px-4 py-3"></th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-100">
+        <% @majors.each do |major| %>
+          <tr class="hover:bg-slate-50 transition-colors">
+            <td class="px-4 py-3 text-sm font-medium text-gray-900"><%= major.name %></td>
+            <td class="px-4 py-3 text-sm text-gray-600 text-center"><%= major.children.size %></td>
+            <td class="px-4 py-3 text-sm text-gray-600 text-center"><%= major.children.sum { |m| m.children.size } %></td>
+            <td class="px-4 py-3 text-sm text-gray-500"><%= major.created_at.strftime("%Y/%m/%d %H:%M") %></td>
+            <td class="px-4 py-3 whitespace-nowrap text-right text-sm font-medium space-x-3">
+              <%= link_to "編集", edit_admin_category_major_path(major), class: "text-blue-600 hover:text-blue-800 transition-colors" %>
+              <%= button_to "削除", admin_category_major_path(major), method: :delete,
+                    data: { turbo_confirm: "「#{major.name}」を削除しますか？配下の中分類・小分類も削除できません（子が存在する場合）。" },
+                    class: "text-red-600 hover:text-red-800 bg-transparent border-0 cursor-pointer font-medium transition-colors" %>
+            </td>
+          </tr>
+        <% end %>
+        <% if @majors.empty? %>
+          <tr>
+            <td colspan="5" class="px-4 py-12 text-center text-sm text-gray-400">
+              大分類が登録されていません
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <%# ナビゲーション %>
+  <div class="mt-4 flex gap-3 text-sm">
+    <%= link_to "中分類管理 →", admin_category_mediums_path, class: "text-blue-600 hover:text-blue-800" %>
+    <%= link_to "小分類管理 →", admin_category_minors_path, class: "text-blue-600 hover:text-blue-800" %>
+  </div>
+</div>

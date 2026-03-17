@@ -5,11 +5,19 @@ class CsvExportService
   # @return [String] UTF-8 BOM 付き CSV 文字列
   def export_equipments(equipments)
     headers = %w[備品名 管理番号 カテゴリ ステータス 在庫数 貸出中数 説明]
-    rows = equipments.includes(:category).map do |eq|
+    rows = equipments.includes(category: { parent: :parent }).map do |eq|
+      category_path = if eq.category
+        minor  = eq.category
+        medium = minor.parent
+        major  = medium&.parent
+        "#{major&.name} > #{medium&.name} > #{minor.name}"
+      else
+        ""
+      end
       [
         escape_formula(eq.name),
         eq.management_number,
-        escape_formula(eq.category&.name.to_s),
+        escape_formula(category_path),
         eq.status,
         eq.total_count,
         eq.total_count - eq.available_count,
@@ -37,11 +45,19 @@ class CsvExportService
     generate_csv(headers, rows)
   end
 
-  # @param categories [ActiveRecord::Relation<Category>]
+  # @param categories [ActiveRecord::Relation<Category>] 小分類（level=2）を入力とする
   # @return [String] UTF-8 BOM 付き CSV 文字列
   def export_categories(categories)
-    headers = %w[カテゴリ名]
-    rows = categories.map { |c| [ escape_formula(c.name) ] }
+    headers = %w[大分類名 中分類名 小分類名]
+    rows = categories.map do |minor|
+      medium = minor.parent
+      major  = medium&.parent
+      [
+        escape_formula(major&.name.to_s),
+        escape_formula(medium&.name.to_s),
+        escape_formula(minor.name)
+      ]
+    end
     generate_csv(headers, rows)
   end
 

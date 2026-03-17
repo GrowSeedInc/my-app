@@ -30,11 +30,45 @@
     <% end %>
   </div>
 
-  <div>
-    <%= f.label :category_id, "カテゴリ", class: "block text-sm font-medium text-gray-700 mb-1" %>
-    <%= f.collection_select :category_id, Category.order(:name), :id, :name,
-          { include_blank: "カテゴリなし" },
-          class: "w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+  <div data-controller="category-select"
+       data-category-select-mediums-url-value="<%= by_major_admin_category_mediums_path %>"
+       data-category-select-minors-url-value="<%= by_medium_admin_category_minors_path %>"
+       data-category-select-mode-value="form"
+       data-category-select-selected-major-value="<%= @category_major&.id %>"
+       data-category-select-selected-medium-value="<%= @category_medium&.id %>"
+       data-category-select-selected-minor-value="<%= @category_minor&.id %>"
+       class="space-y-3">
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">大分類</label>
+      <%= select_tag :category_major,
+            options_from_collection_for_select(Category.major.order(:name), :id, :name, @category_major&.id),
+            include_blank: "大分類を選択",
+            class: "w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+            data: { category_select_target: "major", action: "change->category-select#majorChange" } %>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">中分類</label>
+      <select name="category_medium"
+              data-category-select-target="medium"
+              data-action="change->category-select#mediumChange"
+              class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        <option value="">中分類を選択</option>
+      </select>
+    </div>
+
+    <div>
+      <%= f.label :category_id, "小分類", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= f.select :category_id,
+            [],
+            { include_blank: "小分類を選択" },
+            class: "w-full border #{ equipment.errors[:category_id].any? ? 'border-red-400' : 'border-gray-300' } rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+            data: { category_select_target: "minor" } %>
+      <% if equipment.errors[:category_id].any? %>
+        <p class="mt-1 text-xs text-red-600"><%= equipment.errors[:category_id].first %></p>
+      <% end %>
+    </div>
   </div>
 
   <div class="grid grid-cols-2 gap-4">

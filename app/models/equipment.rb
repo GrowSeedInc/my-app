@@ -18,4 +18,14 @@ class Equipment < ApplicationRecord
   validates :management_number, presence: true, uniqueness: true
   validates :total_count, presence: true, numericality: { greater_than_or_equal_to: 0 }
   validates :available_count, presence: true, numericality: { greater_than_or_equal_to: 0 }
+  validate :category_must_be_minor
+
+  private
+
+  def category_must_be_minor
+    return if category_id.nil?
+    return if category&.minor?
+
+    errors.add(:category, "小分類（最下位カテゴリ）を選択してください")
+  end
 end

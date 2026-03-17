@@ -1,27 +1,21 @@
-class Admin::CategoriesController < ApplicationController
+class Admin::CategoryMajorsController < ApplicationController
   before_action :set_category, only: [ :edit, :update, :destroy ]
 
   def index
     authorize Category
-    result = search_service.search_categories(
-      keyword: params[:keyword],
-      sort:    params[:sort],
-      page:    params[:page]
-    )
-    @categories = result.records
-    @pagination = result
+    @majors = Category.major.includes(children: :children).order(:name)
   end
 
   def new
     authorize Category
-    @category = Category.new
+    @category = Category.new(level: :major)
   end
 
   def create
     authorize Category
-    result = category_service.create(name: category_params[:name])
+    result = category_service.create(name: category_params[:name], level: :major)
     if result[:success]
-      redirect_to admin_categories_path, notice: "カテゴリを作成しました"
+      redirect_to admin_category_majors_path, notice: "大分類を作成しました"
     else
       @category = result[:category]
       render :new, status: :unprocessable_entity
@@ -36,7 +30,7 @@ class Admin::CategoriesController < ApplicationController
     authorize @category
     result = category_service.update(category: @category, params: category_params)
     if result[:success]
-      redirect_to admin_categories_path, notice: "カテゴリを更新しました"
+      redirect_to admin_category_majors_path, notice: "大分類を更新しました"
     else
       @category = result[:category]
       render :edit, status: :unprocessable_entity
@@ -47,15 +41,17 @@ class Admin::CategoriesController < ApplicationController
     authorize @category
     result = category_service.destroy(category: @category)
     if result[:success]
-      redirect_to admin_categories_path, notice: "カテゴリを削除しました"
+      redirect_to admin_category_majors_path, notice: "大分類を削除しました"
     else
-      redirect_to admin_categories_path, alert: result[:message]
+      redirect_to admin_category_majors_path, alert: result[:message]
     end
   end
 
   def export_csv
     authorize Category, :export_csv?
-    csv = CsvExportService.new.export_categories(Category.order(:name))
+    csv = CsvExportService.new.export_categories(
+      Category.minor.includes(parent: :parent).order("categories.name")
+    )
     send_data csv,
               filename: "categories_#{Date.today.strftime('%Y%m%d')}.csv",
               type: "text/csv; charset=utf-8"
@@ -64,7 +60,7 @@ class Admin::CategoriesController < ApplicationController
   def import_template
     authorize Category, :import_csv?
     require "csv"
-    headers = %w[カテゴリ名]
+    headers = %w[大分類名 中分類名 小分類名]
     csv = "\xEF\xBB\xBF" + CSV.generate(encoding: "UTF-8") { |c| c << headers }
     send_data csv,
               filename: "categories_template.csv",
@@ -76,39 +72,35 @@ class Admin::CategoriesController < ApplicationController
 
     file = params[:file]
     unless file.present?
-      return redirect_to admin_categories_path, alert: "ファイルを選択してください"
+      return redirect_to admin_category_majors_path, alert: "ファイルを選択してください"
     end
     if file.size > 5.megabytes
-      return redirect_to admin_categories_path, alert: "ファイルサイズは5MB以下にしてください"
+      return redirect_to admin_category_majors_path, alert: "ファイルサイズは5MB以下にしてください"
     end
     unless CsvImportService.new.csv_file?(file)
-      return redirect_to admin_categories_path, alert: "CSVファイルを選択してください"
+      return redirect_to admin_category_majors_path, alert: "CSVファイルを選択してください"
     end
 
     result = CsvImportService.new.import_categories(file)
 
     if result[:success]
-      redirect_to admin_categories_path, notice: result[:message]
+      redirect_to admin_category_majors_path, notice: result[:message]
     else
       flash[:import_errors] = result[:errors]
-      redirect_to admin_categories_path, alert: result[:message]
+      redirect_to admin_category_majors_path, alert: result[:message]
     end
   rescue ArgumentError => e
-    redirect_to admin_categories_path, alert: e.message
+    redirect_to admin_category_majors_path, alert: e.message
   end
 
   private
 
   def set_category
-    @category = Category.find(params[:id])
+    @category = Category.major.find(params[:id])
   end
 
   def category_service
     @category_service ||= CategoryService.new
-  end
-
-  def search_service
-    @search_service ||= SearchService.new
   end
 
   def category_params
