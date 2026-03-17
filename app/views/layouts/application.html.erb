@@ -17,76 +17,132 @@
   <body class="bg-gray-100 min-h-screen text-gray-900 antialiased">
 
     <% if user_signed_in? %>
-      <%# ヘッダー: 上部に青いアクセントライン %>
-      <header class="bg-white shadow-sm sticky top-0 z-10 border-t-4 border-blue-600">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="flex items-center justify-between h-14">
 
-            <%# ロゴ %>
-            <%= link_to root_path, class: "flex items-center gap-2 font-bold text-blue-600 hover:text-blue-700 transition-colors text-sm tracking-wide shrink-0" do %>
+      <div class="flex min-h-screen"
+           data-controller="sidebar"
+           data-action="click@window->sidebar#handleWindowClick">
+
+        <%# サイドバーパネル %>
+        <aside data-sidebar-target="panel"
+               class="fixed inset-y-0 left-0 z-30 w-64 bg-white border-r border-gray-200 flex flex-col transition-transform duration-300 -translate-x-full">
+
+          <%# ロゴ %>
+          <div class="flex items-center h-14 px-4 border-b border-gray-200 shrink-0 border-t-4 border-blue-600">
+            <%= link_to root_path, class: "flex items-center gap-2 font-bold text-blue-600 hover:text-blue-700 transition-colors text-sm tracking-wide" do %>
               <span class="text-base">▤</span>
               <span>備品管理システム</span>
             <% end %>
+          </div>
 
-            <%# ナビゲーション %>
-            <nav class="flex items-center gap-1 text-sm">
-              <%= link_to "備品一覧", equipments_path,
-                    class: "px-3 py-2 rounded transition-colors font-medium #{controller_name == 'equipments' ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}" %>
-              <%= link_to "貸出一覧", loans_path,
-                    class: "px-3 py-2 rounded transition-colors font-medium #{controller_name == 'loans' ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}" %>
-              <%= link_to "マイページ", mypage_path,
-                    class: "px-3 py-2 rounded transition-colors font-medium #{controller_name == 'mypages' ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}" %>
+          <%# ナビゲーション %>
+          <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto text-sm">
+            <%= link_to "備品一覧", equipments_path,
+                  class: "flex items-center gap-2 px-3 py-2 rounded transition-colors font-medium w-full #{controller_name == 'equipments' ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}" %>
+            <%= link_to "貸出一覧", loans_path,
+                  class: "flex items-center gap-2 px-3 py-2 rounded transition-colors font-medium w-full #{controller_name == 'loans' ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}" %>
+            <%= link_to "マイページ", mypage_path,
+                  class: "flex items-center gap-2 px-3 py-2 rounded transition-colors font-medium w-full #{controller_name == 'mypages' ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}" %>
+            <% if current_user.admin? %>
+              <hr class="my-2 border-gray-200">
+              <%= link_to "ダッシュボード", admin_dashboard_path,
+                    class: "flex items-center gap-2 px-3 py-2 rounded transition-colors font-medium w-full #{controller_name == 'dashboards' ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}" %>
+              <%= link_to "ユーザー管理", admin_users_path,
+                    class: "flex items-center gap-2 px-3 py-2 rounded transition-colors font-medium w-full #{controller_name == 'users' && controller.class.module_parent == Admin ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}" %>
+              <%= link_to "カテゴリ管理", admin_categories_path,
+                    class: "flex items-center gap-2 px-3 py-2 rounded transition-colors font-medium w-full #{controller_name == 'categories' && controller.class.module_parent == Admin ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}" %>
+            <% end %>
+          </nav>
+
+          <%# ユーザー情報・ログアウト %>
+          <div class="shrink-0 px-4 py-3 border-t border-gray-200">
+            <div class="mb-2">
+              <p class="text-xs font-semibold text-gray-800 leading-tight"><%= current_user.name.presence || current_user.email %></p>
               <% if current_user.admin? %>
-                <span class="w-px h-4 bg-gray-300 mx-1"></span>
-                <%= link_to "ダッシュボード", admin_dashboard_path,
-                      class: "px-3 py-2 rounded transition-colors font-medium #{controller_name == 'dashboards' ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}" %>
-                <%= link_to "ユーザー管理", admin_users_path,
-                      class: "px-3 py-2 rounded transition-colors font-medium #{controller_name == 'users' && controller.class.module_parent == Admin ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}" %>
-                <%= link_to "カテゴリ管理", admin_categories_path,
-                      class: "px-3 py-2 rounded transition-colors font-medium #{controller_name == 'categories' && controller.class.module_parent == Admin ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}" %>
+                <p class="text-xs text-blue-600 font-medium">管理者</p>
+              <% else %>
+                <p class="text-xs text-gray-400">一般ユーザー</p>
               <% end %>
-            </nav>
-
-            <%# ユーザー情報 %>
-            <div class="flex items-center gap-3 shrink-0">
-              <div class="text-right hidden sm:block">
-                <p class="text-xs font-semibold text-gray-800 leading-tight"><%= current_user.name.presence || current_user.email %></p>
-                <% if current_user.admin? %>
-                  <p class="text-xs text-blue-600 font-medium">管理者</p>
-                <% else %>
-                  <p class="text-xs text-gray-400">一般ユーザー</p>
-                <% end %>
-              </div>
-              <%= button_to "ログアウト", destroy_user_session_path, method: :delete,
-                    class: "text-xs text-gray-500 hover:text-gray-700 border border-gray-300 hover:border-gray-400 px-3 py-1.5 rounded cursor-pointer bg-white transition-colors" %>
             </div>
+            <%= button_to "ログアウト", destroy_user_session_path, method: :delete,
+                  class: "w-full text-xs text-gray-500 hover:text-gray-700 border border-gray-300 hover:border-gray-400 px-3 py-1.5 rounded cursor-pointer bg-white transition-colors" %>
+          </div>
 
+        </aside>
+
+        <%# モバイルスクリム %>
+        <div data-sidebar-target="scrim"
+             data-action="click->sidebar#close"
+             class="fixed inset-0 z-20 bg-black/50 lg:hidden hidden">
+        </div>
+
+        <%# メインコンテンツエリア %>
+        <div data-sidebar-target="main"
+             class="flex-1 min-w-0 transition-all duration-300 lg:ml-0">
+
+          <%# ハンバーガーボタンバー %>
+          <div class="bg-white border-b border-gray-200 border-t-4 border-blue-600 px-4 h-14 flex items-center sticky top-0 z-10">
+            <button data-sidebar-target="hamburger"
+                    data-action="click->sidebar#toggle"
+                    aria-expanded="false"
+                    aria-label="メニューを開閉する"
+                    class="p-2 rounded text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+              </svg>
+            </button>
+          </div>
+
+          <%# フラッシュメッセージ %>
+          <% if notice.present? %>
+            <div class="px-4 sm:px-6 lg:px-8 pt-4">
+              <div class="flex items-center gap-2 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg text-sm">
+                <span class="text-green-500 font-bold">✓</span>
+                <%= notice %>
+              </div>
+            </div>
+          <% end %>
+          <% if alert.present? %>
+            <div class="px-4 sm:px-6 lg:px-8 pt-4">
+              <div class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg text-sm">
+                <span class="text-red-500 font-bold">✕</span>
+                <%= alert %>
+              </div>
+            </div>
+          <% end %>
+
+          <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <%= yield %>
+          </main>
+
+        </div>
+
+      </div>
+
+    <% else %>
+
+      <%# 未ログイン時: サイドバーなし %>
+      <% if notice.present? %>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+          <div class="flex items-center gap-2 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg text-sm">
+            <span class="text-green-500 font-bold">✓</span>
+            <%= notice %>
           </div>
         </div>
-      </header>
-    <% end %>
-
-    <%# フラッシュメッセージ %>
-    <% if notice.present? %>
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-        <div class="flex items-center gap-2 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg text-sm">
-          <span class="text-green-500 font-bold">✓</span>
-          <%= notice %>
+      <% end %>
+      <% if alert.present? %>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+          <div class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg text-sm">
+            <span class="text-red-500 font-bold">✕</span>
+            <%= alert %>
+          </div>
         </div>
-      </div>
-    <% end %>
-    <% if alert.present? %>
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-        <div class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg text-sm">
-          <span class="text-red-500 font-bold">✕</span>
-          <%= alert %>
-        </div>
-      </div>
-    <% end %>
+      <% end %>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      <%= yield %>
-    </main>
+      <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <%= yield %>
+      </main>
+
+    <% end %>
 
   </body>
 </html>
