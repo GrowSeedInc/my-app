@@ -21,9 +21,9 @@ Rails モノリス（MVC + Service Object + Policy）。Hotwire（Turbo/Stimulus
 | devise | 認証（User モデル自動生成、ルート `devise_for :users`） |
 | pundit | 認可（Policy クラスで action 単位に権限定義） |
 | discard | ソフトデリート（`discarded_at` カラム、`kept` スコープ） |
-| sidekiq | バックグラウンドジョブ（ActiveJob バックエンド） |
+| sidekiq | バックグラウンドジョブ（Gemfile に含む。キューバックエンドは solid_queue を使用） |
 | whenever | Cron スケジューリング（`config/schedule.rb`） |
-| solid_queue / solid_cache / solid_cable | DB バックドのキュー・キャッシュ・WebSocket |
+| solid_queue / solid_cache / solid_cable | DB バックドのキュー・キャッシュ・WebSocket（`config.active_job.queue_adapter = :solid_queue`） |
 | rspec-rails | テストフレームワーク |
 | factory_bot_rails | テストデータファクトリ |
 | capybara + selenium-webdriver | システムテスト（E2E） |
@@ -41,7 +41,7 @@ Rails モノリス（MVC + Service Object + Policy）。Hotwire（Turbo/Stimulus
 - トランザクション・排他ロック（`with_lock`）は Service 内で処理
 
 ### コード品質
-- RuboCop（rubocop-rails-omakase）+ Brakeman（セキュリティ静的解析）
+- RuboCop（rubocop-rails-omakase）+ Brakeman（セキュリティ静的解析）+ bundler-audit（Gem 脆弱性チェック）
 - RSpec によるユニット・統合・E2E テスト
 
 ## Development Environment

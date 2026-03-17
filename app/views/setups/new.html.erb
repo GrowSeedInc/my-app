@@ -1,0 +1,75 @@
+<div class="min-h-screen bg-gray-100 flex items-center justify-center py-12 px-4">
+  <div class="w-full max-w-sm">
+
+    <%# ロゴ・タイトル %>
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-12 h-12 bg-blue-600 rounded-xl mb-4">
+        <span class="text-white text-xl">▤</span>
+      </div>
+      <h1 class="text-xl font-bold text-gray-800">初期セットアップ</h1>
+      <p class="mt-1 text-sm text-gray-500">管理者アカウントを作成してください</p>
+    </div>
+
+    <%# セットアップカード %>
+    <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-8">
+
+      <% if @user.errors.any? %>
+        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-4">
+          <ul class="list-disc list-inside space-y-1">
+            <% @user.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <%= form_with model: @user, url: setup_path, html: { class: "space-y-4" } do |f| %>
+        <div>
+          <%= f.label :name, "名前", class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= f.text_field :name,
+                autocomplete: "name",
+                required: true,
+                class: "w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+                placeholder: "山田 太郎" %>
+        </div>
+
+        <div>
+          <%= f.label :email, "メールアドレス", class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= f.email_field :email,
+                autocomplete: "email",
+                required: true,
+                class: "w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+                placeholder: "admin@example.com" %>
+        </div>
+
+        <div>
+          <%= f.label :password, "パスワード", class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= f.password_field :password,
+                autocomplete: "new-password",
+                required: true,
+                class: "w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+                placeholder: "8文字以上" %>
+        </div>
+
+        <div>
+          <%= f.label :password_confirmation, "パスワード（確認）", class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= f.password_field :password_confirmation,
+                autocomplete: "new-password",
+                required: true,
+                class: "w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+                placeholder: "パスワードを再入力" %>
+        </div>
+
+        <div class="pt-1">
+          <%= f.submit "管理者アカウントを作成",
+                class: "w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md text-sm cursor-pointer transition-colors",
+                data: { disable_with: "作成中..." } %>
+        </div>
+      <% end %>
+    </div>
+
+    <p class="text-center text-xs text-gray-400 mt-6">
+      このページはユーザーが存在しない場合のみアクセスできます
+    </p>
+  </div>
+</div>
