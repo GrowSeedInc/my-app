@@ -10,16 +10,21 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_09_050000) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_17_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
 
   create_table "categories", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.integer "level", default: 0, null: false
+    t.boolean "migrated_from_flat", default: false, null: false
     t.string "name", null: false
+    t.uuid "parent_id"
     t.datetime "updated_at", null: false
-    t.index ["name"], name: "index_categories_on_name", unique: true
+    t.index ["name"], name: "idx_categories_name_root", unique: true, where: "(parent_id IS NULL)"
+    t.index ["parent_id", "name"], name: "idx_categories_name_scoped", unique: true, where: "(parent_id IS NOT NULL)"
+    t.index ["parent_id"], name: "idx_categories_parent_id"
   end
 
   create_table "equipments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -70,6 +75,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_09_050000) do
     t.index ["role"], name: "index_users_on_role"
   end
 
+  add_foreign_key "categories", "categories", column: "parent_id"
   add_foreign_key "equipments", "categories"
   add_foreign_key "loans", "equipments"
   add_foreign_key "loans", "users"
