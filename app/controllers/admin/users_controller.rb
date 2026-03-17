@@ -90,7 +90,9 @@ class Admin::UsersController < ApplicationController
       redirect_to admin_users_path,
                   notice: "#{result[:message]}（初期パスワード: password123 — ユーザーに変更を促してください）"
     else
-      flash[:import_errors] = result[:errors]
+      errors = result[:errors]
+      flash[:import_errors] = errors.first(50)
+      flash[:import_errors_truncated] = errors.size - 50 if errors.size > 50
       redirect_to admin_users_path, alert: result[:message]
     end
   rescue ArgumentError => e

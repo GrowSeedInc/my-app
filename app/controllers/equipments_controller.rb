@@ -105,7 +105,9 @@ class EquipmentsController < ApplicationController
     if result[:success]
       redirect_to equipments_path, notice: result[:message]
     else
-      flash[:import_errors] = result[:errors]
+      errors = result[:errors]
+      flash[:import_errors] = errors.first(50)
+      flash[:import_errors_truncated] = errors.size - 50 if errors.size > 50
       redirect_to equipments_path, alert: result[:message]
     end
   rescue ArgumentError => e

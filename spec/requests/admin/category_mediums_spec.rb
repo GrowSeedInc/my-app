@@ -6,39 +6,6 @@ RSpec.describe "Admin::CategoryMediums", type: :request do
   let!(:major)  { create(:category, name: "大分類") }
   let!(:medium) { create(:category, :medium, name: "中分類テスト", parent: major) }
 
-  # ─── GET /admin/category_mediums ─────────────────────────────────────────
-  describe "GET /admin/category_mediums" do
-    context "管理者の場合" do
-      before { sign_in admin }
-
-      it "200を返す" do
-        get admin_category_mediums_path
-        expect(response).to have_http_status(:ok)
-      end
-
-      it "中分類名が表示される" do
-        get admin_category_mediums_path
-        expect(response.body).to include("中分類テスト")
-      end
-    end
-
-    context "一般ユーザーの場合" do
-      before { sign_in member }
-
-      it "403を返す" do
-        get admin_category_mediums_path
-        expect(response).to have_http_status(:forbidden)
-      end
-    end
-
-    context "未認証の場合" do
-      it "ログイン画面にリダイレクト" do
-        get admin_category_mediums_path
-        expect(response).to redirect_to(new_user_session_path)
-      end
-    end
-  end
-
   # ─── GET /admin/category_mediums/new ─────────────────────────────────────
   describe "GET /admin/category_mediums/new" do
     before { sign_in admin }
@@ -65,9 +32,9 @@ RSpec.describe "Admin::CategoryMediums", type: :request do
     context "有効なパラメータの場合" do
       let(:valid_params) { { category: { name: "新中分類", parent_id: major.id } } }
 
-      it "中分類一覧にリダイレクト" do
+      it "カテゴリー管理にリダイレクト" do
         post admin_category_mediums_path, params: valid_params
-        expect(response).to redirect_to(admin_category_mediums_path)
+        expect(response).to redirect_to(admin_category_majors_path)
       end
 
       it "中分類が作成される" do
@@ -123,9 +90,9 @@ RSpec.describe "Admin::CategoryMediums", type: :request do
     before { sign_in admin }
 
     context "有効なパラメータの場合" do
-      it "中分類一覧にリダイレクト" do
+      it "カテゴリー管理にリダイレクト" do
         patch admin_category_medium_path(medium), params: { category: { name: "更新中分類", parent_id: major.id } }
-        expect(response).to redirect_to(admin_category_mediums_path)
+        expect(response).to redirect_to(admin_category_majors_path)
       end
 
       it "名前が更新される" do
@@ -161,9 +128,9 @@ RSpec.describe "Admin::CategoryMediums", type: :request do
     before { sign_in admin }
 
     context "子カテゴリが存在しない場合" do
-      it "中分類一覧にリダイレクト" do
+      it "カテゴリー管理にリダイレクト" do
         delete admin_category_medium_path(medium)
-        expect(response).to redirect_to(admin_category_mediums_path)
+        expect(response).to redirect_to(admin_category_majors_path)
       end
 
       it "中分類が削除される" do
@@ -181,9 +148,9 @@ RSpec.describe "Admin::CategoryMediums", type: :request do
     context "子カテゴリ（小分類）が存在する場合" do
       let!(:minor) { create(:category, :minor, parent: medium) }
 
-      it "中分類一覧にリダイレクト" do
+      it "カテゴリー管理にリダイレクト" do
         delete admin_category_medium_path(medium)
-        expect(response).to redirect_to(admin_category_mediums_path)
+        expect(response).to redirect_to(admin_category_majors_path)
       end
 
       it "中分類が削除されない" do

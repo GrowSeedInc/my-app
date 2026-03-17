@@ -34,7 +34,14 @@
               id="category_parent_id"
               data-category-select-target="medium"
               class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-        <option value="">中分類を選択してください</option>
+        <%= options_for_select(
+              [["中分類を選択してください", ""]].concat(
+                medium_categories
+                  .select { |m| m.parent_id == selected_major_id }
+                  .map { |m| [m.name, m.id] }
+              ),
+              category.parent_id
+            ) %>
       </select>
     </div>
 
@@ -48,7 +55,7 @@
     <div class="flex gap-3 pt-2 border-t border-gray-100">
       <%= f.submit category.new_record? ? "作成する" : "更新する",
             class: "bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-md text-sm cursor-pointer transition-colors" %>
-      <%= link_to "キャンセル", admin_category_minors_path, class: "px-4 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors" %>
+      <%= link_to "キャンセル", admin_category_majors_path, class: "px-4 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors" %>
     </div>
   </div>
 <% end %>

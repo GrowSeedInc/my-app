@@ -25,12 +25,12 @@ Rails.application.routes.draw do
         post :import_csv
       end
     end
-    resources :category_mediums do
+    resources :category_mediums, except: [:index] do
       collection do
         get :by_major
       end
     end
-    resources :category_minors do
+    resources :category_minors, except: [:index] do
       collection do
         get :by_medium
       end

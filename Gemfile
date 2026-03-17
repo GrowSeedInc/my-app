@@ -58,6 +58,9 @@ gem "tailwindcss-rails"
 # Soft delete
 gem "discard"
 
+# Database-backed session store
+gem "activerecord-session_store"
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"

@@ -14,23 +14,43 @@ export default class extends Controller {
   connect() {
     if (this.selectedMajorValue) {
       this.majorTarget.value = this.selectedMajorValue
-      this.fetchMediums(this.selectedMajorValue).then(() => {
+
+      // 中分類の選択肢がサーバーサイドで描画済みの場合はAJAXを呼ばず値のみセット
+      const mediumPreloaded = this.hasMediumTarget && this.mediumTarget.options.length > 1
+
+      if (mediumPreloaded) {
         if (this.selectedMediumValue) {
           this.mediumTarget.value = this.selectedMediumValue
-          if (this.hasMinorTarget) {
-            this.fetchMinors(this.selectedMediumValue).then(() => {
-              if (this.selectedMinorValue) {
-                this.minorTarget.value = this.selectedMinorValue
-              }
-              this.updateSubmitState()
-            })
-          } else {
+        }
+        if (this.hasMinorTarget && this.selectedMediumValue) {
+          this.fetchMinors(this.selectedMediumValue).then(() => {
+            if (this.selectedMinorValue) {
+              this.minorTarget.value = this.selectedMinorValue
+            }
             this.updateSubmitState()
-          }
+          })
         } else {
           this.updateSubmitState()
         }
-      })
+      } else {
+        this.fetchMediums(this.selectedMajorValue).then(() => {
+          if (this.selectedMediumValue) {
+            this.mediumTarget.value = this.selectedMediumValue
+            if (this.hasMinorTarget) {
+              this.fetchMinors(this.selectedMediumValue).then(() => {
+                if (this.selectedMinorValue) {
+                  this.minorTarget.value = this.selectedMinorValue
+                }
+                this.updateSubmitState()
+              })
+            } else {
+              this.updateSubmitState()
+            }
+          } else {
+            this.updateSubmitState()
+          }
+        })
+      }
     } else {
       this.updateSubmitState()
     }

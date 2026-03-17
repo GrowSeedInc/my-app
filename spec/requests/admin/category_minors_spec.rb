@@ -7,39 +7,6 @@ RSpec.describe "Admin::CategoryMinors", type: :request do
   let!(:medium) { create(:category, :medium, name: "中分類", parent: major) }
   let!(:minor)  { create(:category, :minor, name: "小分類テスト", parent: medium) }
 
-  # ─── GET /admin/category_minors ──────────────────────────────────────────
-  describe "GET /admin/category_minors" do
-    context "管理者の場合" do
-      before { sign_in admin }
-
-      it "200を返す" do
-        get admin_category_minors_path
-        expect(response).to have_http_status(:ok)
-      end
-
-      it "小分類名が表示される" do
-        get admin_category_minors_path
-        expect(response.body).to include("小分類テスト")
-      end
-    end
-
-    context "一般ユーザーの場合" do
-      before { sign_in member }
-
-      it "403を返す" do
-        get admin_category_minors_path
-        expect(response).to have_http_status(:forbidden)
-      end
-    end
-
-    context "未認証の場合" do
-      it "ログイン画面にリダイレクト" do
-        get admin_category_minors_path
-        expect(response).to redirect_to(new_user_session_path)
-      end
-    end
-  end
-
   # ─── GET /admin/category_minors/new ──────────────────────────────────────
   describe "GET /admin/category_minors/new" do
     before { sign_in admin }
@@ -66,9 +33,9 @@ RSpec.describe "Admin::CategoryMinors", type: :request do
     context "有効なパラメータの場合" do
       let(:valid_params) { { category: { name: "新小分類", parent_id: medium.id } } }
 
-      it "小分類一覧にリダイレクト" do
+      it "カテゴリー管理にリダイレクト" do
         post admin_category_minors_path, params: valid_params
-        expect(response).to redirect_to(admin_category_minors_path)
+        expect(response).to redirect_to(admin_category_majors_path)
       end
 
       it "小分類が作成される" do
@@ -124,9 +91,9 @@ RSpec.describe "Admin::CategoryMinors", type: :request do
     before { sign_in admin }
 
     context "有効なパラメータの場合" do
-      it "小分類一覧にリダイレクト" do
+      it "カテゴリー管理にリダイレクト" do
         patch admin_category_minor_path(minor), params: { category: { name: "更新小分類", parent_id: medium.id } }
-        expect(response).to redirect_to(admin_category_minors_path)
+        expect(response).to redirect_to(admin_category_majors_path)
       end
 
       it "名前が更新される" do
@@ -162,9 +129,9 @@ RSpec.describe "Admin::CategoryMinors", type: :request do
     before { sign_in admin }
 
     context "備品が紐づいていない場合" do
-      it "小分類一覧にリダイレクト" do
+      it "カテゴリー管理にリダイレクト" do
         delete admin_category_minor_path(minor)
-        expect(response).to redirect_to(admin_category_minors_path)
+        expect(response).to redirect_to(admin_category_majors_path)
       end
 
       it "小分類が削除される" do
@@ -182,9 +149,9 @@ RSpec.describe "Admin::CategoryMinors", type: :request do
     context "備品が紐づいている場合" do
       let!(:equipment) { create(:equipment, category: minor) }
 
-      it "小分類一覧にリダイレクト" do
+      it "カテゴリー管理にリダイレクト" do
         delete admin_category_minor_path(minor)
-        expect(response).to redirect_to(admin_category_minors_path)
+        expect(response).to redirect_to(admin_category_majors_path)
       end
 
       it "小分類が削除されない" do

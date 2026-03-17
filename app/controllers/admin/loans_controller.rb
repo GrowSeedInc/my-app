@@ -76,7 +76,9 @@ class Admin::LoansController < ApplicationController
       end
       redirect_to loans_path, notice: msg
     else
-      flash[:import_errors] = result[:errors]
+      errors = result[:errors]
+      flash[:import_errors] = errors.first(50)
+      flash[:import_errors_truncated] = errors.size - 50 if errors.size > 50
       redirect_to loans_path, alert: result[:message]
     end
   rescue ArgumentError => e

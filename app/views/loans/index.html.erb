@@ -38,6 +38,9 @@
           <% end %>
         </tbody>
       </table>
+      <% if flash[:import_errors_truncated]&.positive? %>
+        <p class="mt-2 text-xs text-red-600">他 <%= flash[:import_errors_truncated] %> 件のエラーがあります。CSVを修正して再インポートしてください。</p>
+      <% end %>
     </div>
   <% end %>
 
@@ -149,6 +152,7 @@
             <td class="px-4 py-3 whitespace-nowrap text-right text-sm font-medium space-x-2">
               <% if policy(loan).approve? && loan.pending_approval? %>
                 <%= button_to "承認", approve_loan_path(loan), method: :patch,
+                      data: { turbo_confirm: "#{loan.equipment.name} の貸出申請を承認しますか？" },
                       class: "bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium px-3 py-1 rounded-md transition-colors" %>
               <% end %>
               <% if policy(loan).return_loan? && (loan.active? || loan.overdue?) %>

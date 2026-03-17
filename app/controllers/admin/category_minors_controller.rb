@@ -1,16 +1,16 @@
 class Admin::CategoryMinorsController < ApplicationController
   before_action :set_category, only: [ :edit, :update, :destroy ]
 
-  def index
-    authorize Category
-    @minors = Category.minor.includes(parent: :parent).order(:name)
-  end
-
   def new
     authorize Category
     @category = Category.new(level: :minor)
     @major_categories = Category.major.order(:name)
     @medium_categories = Category.medium.order(:name)
+    if params[:parent_id].present?
+      @category.parent_id = params[:parent_id]
+      medium = Category.medium.find_by(id: params[:parent_id])
+      @selected_major_id = medium&.parent_id
+    end
   end
 
   def create
@@ -21,7 +21,7 @@ class Admin::CategoryMinorsController < ApplicationController
       parent_id: category_params[:parent_id]
     )
     if result[:success]
-      redirect_to admin_category_minors_path, notice: "小分類を作成しました"
+      redirect_to admin_category_majors_path, notice: "小分類を作成しました"
     else
       @category = result[:category]
       @major_categories = Category.major.order(:name)
@@ -40,7 +40,7 @@ class Admin::CategoryMinorsController < ApplicationController
     authorize @category
     result = category_service.update(category: @category, params: category_params)
     if result[:success]
-      redirect_to admin_category_minors_path, notice: "小分類を更新しました"
+      redirect_to admin_category_majors_path, notice: "小分類を更新しました"
     else
       @category = result[:category]
       @major_categories = Category.major.order(:name)
@@ -53,9 +53,9 @@ class Admin::CategoryMinorsController < ApplicationController
     authorize @category
     result = category_service.destroy(category: @category)
     if result[:success]
-      redirect_to admin_category_minors_path, notice: "小分類を削除しました"
+      redirect_to admin_category_majors_path, notice: "小分類を削除しました"
     else
-      redirect_to admin_category_minors_path, alert: result[:message]
+      redirect_to admin_category_majors_path, alert: result[:message]
     end
   end
 

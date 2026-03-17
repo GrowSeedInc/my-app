@@ -34,12 +34,12 @@ RSpec.describe CsvExportService do
 
     it "正しいヘッダー行を含む" do
       rows = CSV.parse(csv_string.sub(bom, ""))
-      expect(rows[0]).to eq(%w[備品名 管理番号 カテゴリ ステータス 在庫数 貸出中数 説明])
+      expect(rows[0]).to eq(%w[備品名 管理番号 大分類名 中分類名 小分類名 ステータス 総数 在庫警告閾値 説明])
     end
 
-    it "備品データを正しく出力する（階層パス形式）" do
+    it "備品データを正しく出力する（3カラム階層形式）" do
       rows = CSV.parse(csv_string.sub(bom, ""))
-      expect(rows[1]).to eq(["ノートPC", "EQ-001", "PC機器 > ノートPC類 > ThinkPad", "available", "5", "2", "テスト用PC"])
+      expect(rows[1]).to eq(["ノートPC", "EQ-001", "PC機器", "ノートPC類", "ThinkPad", "available", "5", "1", "テスト用PC"])
     end
 
     it "ソフトデリート済み備品を含まない" do
@@ -78,16 +78,16 @@ RSpec.describe CsvExportService do
 
     it "正しいヘッダー行を含む" do
       rows = CSV.parse(csv_string.sub(bom, ""))
-      expect(rows[0]).to eq(%w[備品名 貸出者名 申請日 承認日 予定返却日 実返却日 ステータス])
+      expect(rows[0]).to eq(%w[備品名 管理番号 貸出者名 メールアドレス ステータス 開始日 予定返却日 実返却日])
     end
 
     it "貸出データを正しく出力する" do
       rows = CSV.parse(csv_string.sub(bom, ""))
       expect(rows[1][0]).to eq("プロジェクター")
-      expect(rows[1][1]).to eq("田中太郎")
-      expect(rows[1][4]).to eq("2026-03-10")
-      expect(rows[1][5]).to eq("2026-03-09")
-      expect(rows[1][6]).to eq("returned")
+      expect(rows[1][2]).to eq("田中太郎")
+      expect(rows[1][6]).to eq("2026-03-10")
+      expect(rows[1][7]).to eq("2026-03-09")
+      expect(rows[1][4]).to eq("returned")
     end
   end
 
