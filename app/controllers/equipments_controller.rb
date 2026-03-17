@@ -79,7 +79,7 @@ class EquipmentsController < ApplicationController
 
   def import_template
     authorize Equipment, :import_csv?
-    headers = %w[備品名 管理番号 カテゴリ名 ステータス 総数 在庫警告閾値 説明]
+    headers = %w[備品名 管理番号 大分類名 中分類名 小分類名 ステータス 総数 在庫警告閾値 説明]
     csv = "\xEF\xBB\xBF" + CSV.generate(encoding: "UTF-8") { |c| c << headers }
     send_data csv,
               filename: "equipments_template.csv",
