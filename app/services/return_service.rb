@@ -8,7 +8,7 @@ class ReturnService
     unless Loan::RETURNABLE_STATUSES.include?(loan.status)
       return ServiceResult.err(
         error: :invalid_status,
-        message: "貸出中または延滞中の貸出のみ返却処理できません",
+        message: "貸出中または延滞中の貸出のみ返却処理できます",
         loan: loan
       )
     end

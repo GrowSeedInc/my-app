@@ -32,11 +32,20 @@ class CsvImportService
         medium_name = row["中分類名"].strip
         minor_name  = row["小分類名"].strip
 
-        major  = Category.find_or_create_by!(name: major_name, level: :major, parent_id: nil)
-        medium = Category.find_or_create_by!(name: medium_name, level: :medium, parent_id: major.id)
-        Category.find_or_create_by!(name: minor_name, level: :minor, parent_id: medium.id)
+        major = Category.find_or_initialize_by(name: major_name, parent_id: nil)
+        major.level = :major unless major.persisted?
+        major.save!
+
+        medium = Category.find_or_initialize_by(name: medium_name, parent_id: major.id)
+        medium.level = :medium unless medium.persisted?
+        medium.save!
+
+        minor = Category.find_or_initialize_by(name: minor_name, parent_id: medium.id)
+        minor.level = :minor unless minor.persisted?
+        minor.save!
+
         count += 1
-      rescue ActiveRecord::RecordInvalid => e
+      rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique => e
         save_errors << { row: idx + 2, message: e.message }
         raise ActiveRecord::Rollback
       end

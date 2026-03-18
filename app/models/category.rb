@@ -31,7 +31,17 @@ class Category < ApplicationRecord
   private
 
   def parent_level_consistency
-    return unless parent_id.present? && parent.present?
+    if major? && parent_id.present?
+      errors.add(:parent_id, "大分類に親カテゴリは設定できません")
+      return
+    end
+
+    return unless parent_id.present?
+
+    if parent.nil?
+      errors.add(:parent_id, "存在しない親カテゴリが指定されています")
+      return
+    end
 
     if medium? && !parent.major?
       errors.add(:parent_id, "中分類の親は大分類である必要があります")

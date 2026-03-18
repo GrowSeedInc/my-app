@@ -25,6 +25,9 @@ class MigrateCategoriesToHierarchy < ActiveRecord::Migration[8.1]
 
       # 当該大分類を参照していた備品を小分類に更新（バリデーションを回避するため update_all を使用）
       Equipment.where(category_id: major.id).update_all(category_id: minor.id)
+
+      # 処理済みとしてマーキング（再実行安全性: 次回実行時の WHERE 条件で除外される）
+      major.update_column(:migrated_from_flat, true)
     end
 
     # 移行後の検証:

@@ -26,6 +26,6 @@ class Equipment < ApplicationRecord
     return if category_id.nil?
     return if category&.minor?
 
-    errors.add(:category, "小分類（最下位カテゴリ）を選択してください")
+    errors.add(:category_id, "小分類（最下位カテゴリ）を選択してください")
   end
 end
