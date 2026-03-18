@@ -1,4 +1,6 @@
 class Admin::CategoryMajorsController < ApplicationController
+  include CsvImportable
+
   before_action :set_category, only: [ :edit, :update, :destroy ]
 
   def index
@@ -69,28 +71,10 @@ class Admin::CategoryMajorsController < ApplicationController
 
   def import_csv
     authorize Category, :import_csv?
+    return if validate_csv_upload(params[:file], admin_category_majors_path)
 
-    file = params[:file]
-    unless file.present?
-      return redirect_to admin_category_majors_path, alert: "ファイルを選択してください"
-    end
-    if file.size > 5.megabytes
-      return redirect_to admin_category_majors_path, alert: "ファイルサイズは5MB以下にしてください"
-    end
-    unless CsvImportService.new.csv_file?(file)
-      return redirect_to admin_category_majors_path, alert: "CSVファイルを選択してください"
-    end
-
-    result = CsvImportService.new.import_categories(file)
-
-    if result[:success]
-      redirect_to admin_category_majors_path, notice: result[:message]
-    else
-      errors = result[:errors]
-      flash[:import_errors] = errors.first(50)
-      flash[:import_errors_truncated] = errors.size - 50 if errors.size > 50
-      redirect_to admin_category_majors_path, alert: result[:message]
-    end
+    result = CsvImportService.new.import_categories(params[:file])
+    handle_csv_import_result(result, admin_category_majors_path)
   rescue ArgumentError => e
     redirect_to admin_category_majors_path, alert: e.message
   end

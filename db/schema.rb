@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_17_000003) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_18_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -40,6 +40,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_17_000003) do
     t.integer "total_count", default: 0, null: false
     t.datetime "updated_at", null: false
     t.index ["category_id"], name: "index_equipments_on_category_id"
+    t.index ["discarded_at"], name: "index_equipments_on_discarded_at_null", where: "(discarded_at IS NULL)"
     t.index ["management_number"], name: "index_equipments_on_management_number", unique: true
     t.index ["status", "discarded_at"], name: "index_equipments_on_status_and_discarded_at"
   end

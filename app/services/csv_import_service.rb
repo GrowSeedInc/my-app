@@ -114,83 +114,10 @@ class CsvImportService
   # @return [Hash] { success: Boolean, count: Integer, errors: Array, message: String }
   def import_equipments(file)
     rows = parse_csv(file)
-    errors = []
-    management_numbers_in_csv = []
-
-    rows.each_with_index do |row, idx|
-      row_num           = idx + 2
-      name              = row["備品名"]&.strip
-      management_number = row["管理番号"]&.strip
-      major_name        = row["大分類名"]&.strip
-      medium_name       = row["中分類名"]&.strip
-      minor_name        = row["小分類名"]&.strip
-      status            = row["ステータス"]&.strip.presence || "available"
-      total_count       = row["総数"]&.strip
-
-      errors << { row: row_num, message: "備品名は必須です" } if name.blank?
-
-      if management_number.blank?
-        errors << { row: row_num, message: "管理番号は必須です" }
-      else
-        if management_numbers_in_csv.include?(management_number)
-          errors << { row: row_num, message: "管理番号 '#{management_number}' がCSV内で重複しています" }
-        end
-
-        if Equipment.exists?(management_number: management_number)
-          errors << { row: row_num, message: "管理番号 '#{management_number}' は既に登録されています" }
-        end
-      end
-
-      category_specified = major_name.present? || medium_name.present? || minor_name.present?
-      if category_specified && !find_minor_category(major_name, medium_name, minor_name)
-        errors << { row: row_num, message: "カテゴリ '#{major_name} > #{medium_name} > #{minor_name}' が存在しません" }
-      end
-
-      unless VALID_EQUIPMENT_STATUSES.include?(status)
-        errors << { row: row_num, message: "ステータス '#{status}' は無効です" }
-      end
-
-      if total_count.blank?
-        errors << { row: row_num, message: "総数は必須です" }
-      elsif total_count !~ /\A\d+\z/ || total_count.to_i < 0
-        errors << { row: row_num, message: "総数は0以上の整数を入力してください" }
-      end
-
-      management_numbers_in_csv << management_number if management_number.present?
-    end
-
+    errors = validate_equipment_rows(rows)
     return error_result(errors) if errors.any?
 
-    count = 0
-    save_errors = []
-    ActiveRecord::Base.transaction do
-      rows.each_with_index do |row, idx|
-        major_name    = row["大分類名"]&.strip
-        medium_name   = row["中分類名"]&.strip
-        minor_name    = row["小分類名"]&.strip
-        low_stock_raw = row["在庫警告閾値"]&.strip
-        low_stock     = low_stock_raw.present? ? low_stock_raw.to_i : 1
-        category_specified = major_name.present? || medium_name.present? || minor_name.present?
-        category      = category_specified ? find_minor_category(major_name, medium_name, minor_name) : nil
-
-        result = EquipmentService.new.create(
-          name:                row["備品名"].strip,
-          management_number:   row["管理番号"].strip,
-          total_count:         row["総数"].strip.to_i,
-          available_count:     row["総数"].strip.to_i,
-          category_id:         category&.id,
-          status:              row["ステータス"]&.strip.presence || "available",
-          low_stock_threshold: low_stock,
-          description:         row["説明"]&.strip
-        )
-        unless result[:success]
-          save_errors << { row: idx + 2, message: result[:equipment]&.errors&.full_messages&.join(", ") || "登録に失敗しました" }
-          raise ActiveRecord::Rollback
-        end
-        count += 1
-      end
-    end
-
+    count, save_errors = save_equipment_records(rows)
     return error_result(save_errors) if save_errors.any?
 
     { success: true, count: count, errors: [], message: "#{count}件の備品を登録しました" }
@@ -303,6 +230,89 @@ class CsvImportService
   end
 
   private
+
+  def validate_equipment_rows(rows)
+    errors = []
+    management_numbers_in_csv = []
+
+    rows.each_with_index do |row, idx|
+      row_num           = idx + 2
+      name              = row["備品名"]&.strip
+      management_number = row["管理番号"]&.strip
+      major_name        = row["大分類名"]&.strip
+      medium_name       = row["中分類名"]&.strip
+      minor_name        = row["小分類名"]&.strip
+      status            = row["ステータス"]&.strip.presence || "available"
+      total_count       = row["総数"]&.strip
+
+      errors << { row: row_num, message: "備品名は必須です" } if name.blank?
+
+      if management_number.blank?
+        errors << { row: row_num, message: "管理番号は必須です" }
+      else
+        if management_numbers_in_csv.include?(management_number)
+          errors << { row: row_num, message: "管理番号 '#{management_number}' がCSV内で重複しています" }
+        end
+        if Equipment.exists?(management_number: management_number)
+          errors << { row: row_num, message: "管理番号 '#{management_number}' は既に登録されています" }
+        end
+      end
+
+      category_specified = major_name.present? || medium_name.present? || minor_name.present?
+      if category_specified && !find_minor_category(major_name, medium_name, minor_name)
+        errors << { row: row_num, message: "カテゴリ '#{major_name} > #{medium_name} > #{minor_name}' が存在しません" }
+      end
+
+      unless VALID_EQUIPMENT_STATUSES.include?(status)
+        errors << { row: row_num, message: "ステータス '#{status}' は無効です" }
+      end
+
+      if total_count.blank?
+        errors << { row: row_num, message: "総数は必須です" }
+      elsif total_count !~ /\A\d+\z/ || total_count.to_i < 0
+        errors << { row: row_num, message: "総数は0以上の整数を入力してください" }
+      end
+
+      management_numbers_in_csv << management_number if management_number.present?
+    end
+
+    errors
+  end
+
+  def save_equipment_records(rows)
+    count = 0
+    save_errors = []
+
+    ActiveRecord::Base.transaction do
+      rows.each_with_index do |row, idx|
+        major_name         = row["大分類名"]&.strip
+        medium_name        = row["中分類名"]&.strip
+        minor_name         = row["小分類名"]&.strip
+        low_stock_raw      = row["在庫警告閾値"]&.strip
+        low_stock          = low_stock_raw.present? ? low_stock_raw.to_i : 1
+        category_specified = major_name.present? || medium_name.present? || minor_name.present?
+        category           = category_specified ? find_minor_category(major_name, medium_name, minor_name) : nil
+
+        result = EquipmentService.new.create(
+          name:                row["備品名"].strip,
+          management_number:   row["管理番号"].strip,
+          total_count:         row["総数"].strip.to_i,
+          available_count:     row["総数"].strip.to_i,
+          category_id:         category&.id,
+          status:              row["ステータス"]&.strip.presence || "available",
+          low_stock_threshold: low_stock,
+          description:         row["説明"]&.strip
+        )
+        unless result[:success]
+          save_errors << { row: idx + 2, message: result[:equipment]&.errors&.full_messages&.join(", ") || "登録に失敗しました" }
+          raise ActiveRecord::Rollback
+        end
+        count += 1
+      end
+    end
+
+    [ count, save_errors ]
+  end
 
   def parse_csv(file)
     file.rewind if file.respond_to?(:rewind)

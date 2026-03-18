@@ -22,12 +22,10 @@
             <tr class="hover:bg-slate-50 transition-colors">
               <td class="px-4 py-3 text-sm font-medium text-gray-900"><%= loan.equipment.name %></td>
               <td class="px-4 py-3 text-sm text-gray-500"><%= loan.equipment.management_number %></td>
-              <td class="px-4 py-3 text-sm text-gray-500"><%= loan.start_date.strftime("%Y/%m/%d") %></td>
-              <td class="px-4 py-3 text-sm text-gray-500"><%= loan.expected_return_date.strftime("%Y/%m/%d") %></td>
+              <td class="px-4 py-3 text-sm text-gray-500"><%= format_date(loan.start_date) %></td>
+              <td class="px-4 py-3 text-sm text-gray-500"><%= format_date(loan.expected_return_date) %></td>
               <td class="px-4 py-3">
-                <span class="<%= loan_status_badge_class(loan.status) %> px-2 py-0.5 rounded-full text-xs font-medium">
-                  <%= t("loan.status.#{loan.status}") %>
-                </span>
+                <%= render "shared/loan_status_badge", status: loan.status %>
               </td>
             </tr>
           <% end %>
@@ -60,10 +58,10 @@
             <tr class="hover:bg-slate-50 transition-colors">
               <td class="px-4 py-3 text-sm font-medium text-gray-900"><%= loan.equipment.name %></td>
               <td class="px-4 py-3 text-sm text-gray-500"><%= loan.equipment.management_number %></td>
-              <td class="px-4 py-3 text-sm text-gray-500"><%= loan.start_date.strftime("%Y/%m/%d") %></td>
-              <td class="px-4 py-3 text-sm text-gray-500"><%= loan.expected_return_date.strftime("%Y/%m/%d") %></td>
+              <td class="px-4 py-3 text-sm text-gray-500"><%= format_date(loan.start_date) %></td>
+              <td class="px-4 py-3 text-sm text-gray-500"><%= format_date(loan.expected_return_date) %></td>
               <td class="px-4 py-3 text-sm text-gray-500">
-                <%= loan.actual_return_date&.strftime("%Y/%m/%d") || "—" %>
+                <%= format_date(loan.actual_return_date) %>
               </td>
             </tr>
           <% end %>

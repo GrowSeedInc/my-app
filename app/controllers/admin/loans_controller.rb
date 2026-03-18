@@ -1,4 +1,6 @@
 class Admin::LoansController < ApplicationController
+  include CsvImportable
+
   def new
     authorize Loan, :admin_entry?
     @loan = Loan.new
@@ -55,31 +57,14 @@ class Admin::LoansController < ApplicationController
 
   def import_csv
     authorize Loan, :import_csv?
+    return if validate_csv_upload(params[:file], loans_path)
 
-    file = params[:file]
-    unless file.present?
-      return redirect_to loans_path, alert: "ファイルを選択してください"
-    end
-    if file.size > 5.megabytes
-      return redirect_to loans_path, alert: "ファイルサイズは5MB以下にしてください"
-    end
-    unless CsvImportService.new.csv_file?(file)
-      return redirect_to loans_path, alert: "CSVファイルを選択してください"
-    end
-
-    result = CsvImportService.new.import_loans(file)
-
-    if result[:success]
-      msg = result[:message]
-      if result[:warnings].any?
-        msg += "（警告: #{result[:warnings].size}件の在庫不整合 — 備品管理画面で確認してください）"
-      end
-      redirect_to loans_path, notice: msg
+    result = CsvImportService.new.import_loans(params[:file])
+    if result[:success] && result[:warnings].any?
+      msg = result[:message] + "（警告: #{result[:warnings].size}件の在庫不整合 — 備品管理画面で確認してください）"
+      handle_csv_import_result(result, loans_path, success_notice: msg)
     else
-      errors = result[:errors]
-      flash[:import_errors] = errors.first(50)
-      flash[:import_errors_truncated] = errors.size - 50 if errors.size > 50
-      redirect_to loans_path, alert: result[:message]
+      handle_csv_import_result(result, loans_path)
     end
   rescue ArgumentError => e
     redirect_to loans_path, alert: e.message

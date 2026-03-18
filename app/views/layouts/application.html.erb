@@ -93,22 +93,7 @@
           </div>
 
           <%# フラッシュメッセージ %>
-          <% if notice.present? %>
-            <div class="px-4 sm:px-6 lg:px-8 pt-4">
-              <div class="flex items-center gap-2 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg text-sm">
-                <span class="text-green-500 font-bold">✓</span>
-                <%= notice %>
-              </div>
-            </div>
-          <% end %>
-          <% if alert.present? %>
-            <div class="px-4 sm:px-6 lg:px-8 pt-4">
-              <div class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg text-sm">
-                <span class="text-red-500 font-bold">✕</span>
-                <%= alert %>
-              </div>
-            </div>
-          <% end %>
+          <%= render "shared/flash_messages", wrapper_class: "px-4 sm:px-6 lg:px-8" %>
 
           <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <%= yield %>
@@ -121,22 +106,7 @@
     <% else %>
 
       <%# 未ログイン時: サイドバーなし %>
-      <% if notice.present? %>
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-          <div class="flex items-center gap-2 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg text-sm">
-            <span class="text-green-500 font-bold">✓</span>
-            <%= notice %>
-          </div>
-        </div>
-      <% end %>
-      <% if alert.present? %>
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-          <div class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg text-sm">
-            <span class="text-red-500 font-bold">✕</span>
-            <%= alert %>
-          </div>
-        </div>
-      <% end %>
+      <%= render "shared/flash_messages", wrapper_class: "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" %>
 
       <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <%= yield %>

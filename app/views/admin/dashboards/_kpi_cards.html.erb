@@ -1,0 +1,22 @@
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+  <div class="bg-white border border-gray-200 rounded-lg px-5 py-4 border-l-4 border-l-gray-400">
+    <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">備品総数</p>
+    <p class="mt-1 text-2xl font-bold text-gray-800"><%= summary.sum { |r| r[:equipment_count] } %></p>
+    <p class="text-xs text-gray-400 mt-0.5">登録済み備品</p>
+  </div>
+  <div class="bg-white border border-gray-200 rounded-lg px-5 py-4 border-l-4 border-l-blue-500">
+    <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">貸出中</p>
+    <p class="mt-1 text-2xl font-bold text-blue-600"><%= summary.sum { |r| r[:in_use_count] } %></p>
+    <p class="text-xs text-gray-400 mt-0.5">現在貸出中</p>
+  </div>
+  <div class="bg-white border border-gray-200 rounded-lg px-5 py-4 border-l-4 <%= overdue_loans.any? ? 'border-l-red-500' : 'border-l-gray-200' %>">
+    <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">延滞中</p>
+    <p class="mt-1 text-2xl font-bold <%= overdue_loans.any? ? 'text-red-600' : 'text-gray-400' %>"><%= overdue_loans.count %></p>
+    <p class="text-xs text-gray-400 mt-0.5">返却期限超過</p>
+  </div>
+  <div class="bg-white border border-gray-200 rounded-lg px-5 py-4 border-l-4 <%= pending_loans_count > 0 ? 'border-l-amber-400' : 'border-l-gray-200' %>">
+    <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">承認待ち</p>
+    <p class="mt-1 text-2xl font-bold <%= pending_loans_count > 0 ? 'text-amber-500' : 'text-gray-400' %>"><%= pending_loans_count %></p>
+    <p class="text-xs text-gray-400 mt-0.5">申請中</p>
+  </div>
+</div>

@@ -51,13 +51,9 @@ class SearchService
     if category_minor_id.present?
       scope = scope.where(category_id: category_minor_id)
     elsif category_medium_id.present?
-      scope = scope.where(category_id: Category.where(parent_id: category_medium_id).select(:id))
+      scope = scope.where(category_id: Category.minors_under_medium(category_medium_id))
     elsif category_major_id.present?
-      scope = scope.where(
-        category_id: Category.where(
-          parent_id: Category.where(parent_id: category_major_id).select(:id)
-        ).select(:id)
-      )
+      scope = scope.where(category_id: Category.minors_under_major(category_major_id))
     end
 
     scope = scope.where(status: status) if status.present?

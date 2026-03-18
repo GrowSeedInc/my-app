@@ -3,7 +3,7 @@ class LoanService
   # @param equipment_id [String]
   # @param start_date [Date]
   # @param expected_return_date [Date]
-  # @return [Hash] { success: Boolean, loan: Loan, error: Symbol, message: String }
+  # @return [ServiceResult]
   def create(user:, equipment_id:, start_date:, expected_return_date:)
     build_and_save_loan(
       user: user,
@@ -18,7 +18,7 @@ class LoanService
   # @param equipment_id [String] UUID
   # @param start_date [Date]
   # @param expected_return_date [Date]
-  # @return [Hash] { success: Boolean, loan: Loan, error: Symbol, message: String }
+  # @return [ServiceResult]
   def admin_direct_entry(user:, equipment_id:, start_date:, expected_return_date:)
     build_and_save_loan(
       user: user,
@@ -30,16 +30,16 @@ class LoanService
   end
 
   # @param loan_id [String]
-  # @return [Hash]
+  # @return [ServiceResult]
   def approve(loan_id:)
     loan = Loan.find(loan_id)
 
     unless loan.pending_approval?
-      return { success: false, error: :invalid_status_transition, message: "承認待ち状態の貸出のみ承認できます" }
+      return ServiceResult.err(error: :invalid_status_transition, message: "承認待ち状態の貸出のみ承認できます", loan: loan)
     end
 
     loan.update!(status: :active)
-    { success: true, loan: loan }
+    ServiceResult.ok(loan: loan)
   end
 
   # @param loan [Loan]
@@ -54,11 +54,11 @@ class LoanService
     equipment = Equipment.kept.find_by(id: equipment_id)
 
     unless equipment
-      return { success: false, error: :equipment_not_available, message: "指定された備品は利用できません" }
+      return ServiceResult.err(error: :equipment_not_available, message: "指定された備品は利用できません")
     end
 
     unless equipment.available? || equipment.in_use?
-      return { success: false, error: :equipment_not_available, message: "この備品は現在貸出対象外です（ステータス: #{equipment.status}）" }
+      return ServiceResult.err(error: :equipment_not_available, message: "この備品は現在貸出対象外です（ステータス: #{equipment.status}）")
     end
 
     loan = Loan.new(
@@ -70,7 +70,7 @@ class LoanService
     )
 
     unless loan.valid?
-      return { success: false, loan: loan, error: :validation_failed, message: loan.errors.full_messages.join(", ") }
+      return ServiceResult.err(error: :validation_failed, message: loan.errors.full_messages.join(", "), loan: loan)
     end
 
     result = nil
@@ -78,13 +78,13 @@ class LoanService
     ActiveRecord::Base.transaction do
       equipment.with_lock do
         if equipment.available_count <= 0
-          result = { success: false, error: :out_of_stock, message: "現在在庫がありません" }
+          result = ServiceResult.err(error: :out_of_stock, message: "現在在庫がありません")
           raise ActiveRecord::Rollback
         end
 
         loan.save!
         equipment.decrement!(:available_count)
-        result = { success: true, loan: loan }
+        result = ServiceResult.ok(loan: loan)
 
         if equipment.low_stock_threshold > 0 && equipment.available_count < equipment.low_stock_threshold
           notification_service.send_low_stock_alert(equipment: equipment)
@@ -92,7 +92,7 @@ class LoanService
       end
     end
 
-    notification_service.send_loan_confirmation(loan: loan) if result[:success]
+    notification_service.send_loan_confirmation(loan: loan) if result.success?
 
     result
   end

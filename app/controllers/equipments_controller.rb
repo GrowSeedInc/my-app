@@ -1,6 +1,8 @@
 require "csv"
 
 class EquipmentsController < ApplicationController
+  include CsvImportable
+
   before_action :set_equipment, only: [ :show, :edit, :update, :destroy ]
 
   def index
@@ -88,28 +90,10 @@ class EquipmentsController < ApplicationController
 
   def import_csv
     authorize Equipment, :import_csv?
+    return if validate_csv_upload(params[:file], equipments_path)
 
-    file = params[:file]
-    unless file.present?
-      return redirect_to equipments_path, alert: "ファイルを選択してください"
-    end
-    if file.size > 5.megabytes
-      return redirect_to equipments_path, alert: "ファイルサイズは5MB以下にしてください"
-    end
-    unless CsvImportService.new.csv_file?(file)
-      return redirect_to equipments_path, alert: "CSVファイルを選択してください"
-    end
-
-    result = CsvImportService.new.import_equipments(file)
-
-    if result[:success]
-      redirect_to equipments_path, notice: result[:message]
-    else
-      errors = result[:errors]
-      flash[:import_errors] = errors.first(50)
-      flash[:import_errors_truncated] = errors.size - 50 if errors.size > 50
-      redirect_to equipments_path, alert: result[:message]
-    end
+    result = CsvImportService.new.import_equipments(params[:file])
+    handle_csv_import_result(result, equipments_path)
   rescue ArgumentError => e
     redirect_to equipments_path, alert: e.message
   end
@@ -133,13 +117,13 @@ class EquipmentsController < ApplicationController
 
     if current_user.admin?
       equipment_ids = @equipments.map(&:id)
-      @active_loans_by_equipment = Loan.where(status: %i[active overdue])
+      @active_loans_by_equipment = Loan.active_or_overdue
                                        .where(equipment_id: equipment_ids)
-                                       .includes(:user)
+                                       .includes(:user, :equipment)
                                        .group_by(&:equipment_id)
     else
       @my_active_equipment_ids = current_user.loans
-                                             .where(status: %i[active overdue])
+                                             .active_or_overdue
                                              .pluck(:equipment_id)
     end
   end
@@ -156,13 +140,9 @@ class EquipmentsController < ApplicationController
     if params[:category_minor_id].present?
       scope = scope.where(category_id: params[:category_minor_id])
     elsif params[:category_medium_id].present?
-      scope = scope.where(category_id: Category.where(parent_id: params[:category_medium_id]).select(:id))
+      scope = scope.where(category_id: Category.minors_under_medium(params[:category_medium_id]))
     elsif params[:category_major_id].present?
-      scope = scope.where(
-        category_id: Category.where(
-          parent_id: Category.where(parent_id: params[:category_major_id]).select(:id)
-        ).select(:id)
-      )
+      scope = scope.where(category_id: Category.minors_under_major(params[:category_major_id]))
     end
     scope = scope.where(status: params[:status]) if params[:status].present?
     order_clause = SearchService::EQUIPMENT_SORT_MAP[params[:sort]] || "equipments.created_at DESC"

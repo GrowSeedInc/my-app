@@ -14,30 +14,7 @@
   </div>
 
   <%# インポートエラー表示 %>
-  <% if flash[:import_errors].present? %>
-    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-      <h3 class="text-sm font-semibold text-red-800 mb-2">インポートエラー（全件ロールバック済み）</h3>
-      <table class="min-w-full text-xs">
-        <thead>
-          <tr class="text-left text-red-700">
-            <th class="pr-4 pb-1 font-medium">行番号</th>
-            <th class="pb-1 font-medium">エラー内容</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% flash[:import_errors].each do |err| %>
-            <tr class="border-t border-red-100">
-              <td class="pr-4 py-1 text-red-600"><%= err["row"] %>行目</td>
-              <td class="py-1 text-red-700"><%= err["message"] %></td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-      <% if flash[:import_errors_truncated]&.positive? %>
-        <p class="mt-2 text-xs text-red-600">他 <%= flash[:import_errors_truncated] %> 件のエラーがあります。CSVを修正して再インポートしてください。</p>
-      <% end %>
-    </div>
-  <% end %>
+  <%= render "shared/csv_import_errors" %>
 
   <%# CSV インポート %>
   <% if policy(Category).import_csv? %>
