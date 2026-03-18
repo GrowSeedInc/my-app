@@ -6,7 +6,9 @@ RSpec.describe CsvExportService do
   let(:bom) { "\xEF\xBB\xBF" }
 
   describe "#export_equipments" do
-    let(:category) { create(:category, name: "PC機器") }
+    let(:major)    { create(:category, name: "PC機器") }
+    let(:medium)   { create(:category, :medium, name: "ノートPC類", parent: major) }
+    let(:category) { create(:category, :minor, name: "ThinkPad", parent: medium) }
     let!(:equipment) do
       create(:equipment,
         name: "ノートPC",
@@ -32,12 +34,12 @@ RSpec.describe CsvExportService do
 
     it "正しいヘッダー行を含む" do
       rows = CSV.parse(csv_string.sub(bom, ""))
-      expect(rows[0]).to eq(%w[備品名 管理番号 カテゴリ ステータス 在庫数 貸出中数 説明])
+      expect(rows[0]).to eq(%w[備品名 管理番号 大分類名 中分類名 小分類名 ステータス 総数 在庫警告閾値 説明])
     end
 
-    it "備品データを正しく出力する" do
+    it "備品データを正しく出力する（3カラム階層形式）" do
       rows = CSV.parse(csv_string.sub(bom, ""))
-      expect(rows[1]).to eq(["ノートPC", "EQ-001", "PC機器", "available", "5", "2", "テスト用PC"])
+      expect(rows[1]).to eq(["ノートPC", "EQ-001", "PC機器", "ノートPC類", "ThinkPad", "available", "5", "1", "テスト用PC"])
     end
 
     it "ソフトデリート済み備品を含まない" do
@@ -76,36 +78,38 @@ RSpec.describe CsvExportService do
 
     it "正しいヘッダー行を含む" do
       rows = CSV.parse(csv_string.sub(bom, ""))
-      expect(rows[0]).to eq(%w[備品名 貸出者名 申請日 承認日 予定返却日 実返却日 ステータス])
+      expect(rows[0]).to eq(%w[備品名 管理番号 貸出者名 メールアドレス ステータス 開始日 予定返却日 実返却日])
     end
 
     it "貸出データを正しく出力する" do
       rows = CSV.parse(csv_string.sub(bom, ""))
       expect(rows[1][0]).to eq("プロジェクター")
-      expect(rows[1][1]).to eq("田中太郎")
-      expect(rows[1][4]).to eq("2026-03-10")
-      expect(rows[1][5]).to eq("2026-03-09")
-      expect(rows[1][6]).to eq("returned")
+      expect(rows[1][2]).to eq("田中太郎")
+      expect(rows[1][6]).to eq("2026-03-10")
+      expect(rows[1][7]).to eq("2026-03-09")
+      expect(rows[1][4]).to eq("returned")
     end
   end
 
   describe "#export_categories" do
-    let!(:category) { create(:category, name: "ネットワーク機器") }
+    let!(:major)  { create(:category, name: "PC機器") }
+    let!(:medium) { create(:category, :medium, name: "ノートPC類", parent: major) }
+    let!(:minor)  { create(:category, :minor, name: "ThinkPad", parent: medium) }
 
-    subject(:csv_string) { service.export_categories(Category.all) }
+    subject(:csv_string) { service.export_categories(Category.minor.includes(parent: :parent)) }
 
     it "UTF-8 BOMで始まる" do
       expect(csv_string).to start_with(bom)
     end
 
-    it "正しいヘッダー行を含む" do
+    it "正しいヘッダー行を含む（3カラム）" do
       rows = CSV.parse(csv_string.sub(bom, ""))
-      expect(rows[0]).to eq(%w[カテゴリ名])
+      expect(rows[0]).to eq(%w[大分類名 中分類名 小分類名])
     end
 
-    it "カテゴリ名を出力する" do
+    it "3カラム形式で階層を出力する" do
       rows = CSV.parse(csv_string.sub(bom, ""))
-      expect(rows[1][0]).to eq("ネットワーク機器")
+      expect(rows[1]).to eq(["PC機器", "ノートPC類", "ThinkPad"])
     end
   end
 

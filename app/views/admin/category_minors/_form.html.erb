@@ -1,0 +1,52 @@
+<%= form_with model: category,
+      url: category.new_record? ? admin_category_minors_path : admin_category_minor_path(category),
+      class: "space-y-5" do |f| %>
+  <%= render "shared/error_messages", object: category %>
+
+  <div data-controller="category-select"
+       data-category-select-mediums-url-value="<%= by_major_admin_category_mediums_path %>"
+       data-category-select-mode-value="form"
+       data-category-select-selected-major-value="<%= selected_major_id %>"
+       data-category-select-selected-medium-value="<%= category.parent_id %>"
+       class="space-y-5">
+
+    <div>
+      <%= label_tag :major_id, "親大分類", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= select_tag :major_id,
+            options_from_collection_for_select(major_categories, :id, :name, selected_major_id),
+            include_blank: "大分類を選択してください",
+            class: "w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+            data: { category_select_target: "major", action: "change->category-select#majorChange" } %>
+    </div>
+
+    <div>
+      <%= f.label :parent_id, "親中分類", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <select name="category[parent_id]"
+              id="category_parent_id"
+              data-category-select-target="medium"
+              class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        <%= options_for_select(
+              [["中分類を選択してください", ""]].concat(
+                medium_categories
+                  .select { |m| m.parent_id == selected_major_id }
+                  .map { |m| [m.name, m.id] }
+              ),
+              category.parent_id
+            ) %>
+      </select>
+    </div>
+
+    <div>
+      <%= f.label :name, "小分類名", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= f.text_field :name,
+            class: "w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+            placeholder: "例: ThinkPad" %>
+    </div>
+
+    <div class="flex gap-3 pt-2 border-t border-gray-100">
+      <%= f.submit category.new_record? ? "作成する" : "更新する",
+            class: "bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-md text-sm cursor-pointer transition-colors" %>
+      <%= link_to "キャンセル", admin_category_majors_path, class: "px-4 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors" %>
+    </div>
+  </div>
+<% end %>

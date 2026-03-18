@@ -17,7 +17,7 @@
   </tr>
   <tr>
     <th>返却予定日</th>
-    <td><%= @loan.expected_return_date.strftime("%Y/%m/%d") %></td>
+    <td><%= format_date(@loan.expected_return_date) %></td>
   </tr>
   <tr>
     <th>延滞日数</th>

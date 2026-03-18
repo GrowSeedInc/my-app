@@ -7,7 +7,7 @@ class EquipmentService
   # @param category_id [String, nil]
   # @param status [Symbol]
   # @param low_stock_threshold [Integer]
-  # @return [Hash] { success: Boolean, equipment: Equipment, error: Symbol, message: String }
+  # @return [ServiceResult]
   def create(name:, management_number:, total_count:, available_count: nil, description: nil, category_id: nil, status: :available, low_stock_threshold: 1)
     equipment = Equipment.new(
       name: name,
@@ -21,31 +21,31 @@ class EquipmentService
     )
 
     if equipment.save
-      { success: true, equipment: equipment }
+      ServiceResult.ok(equipment: equipment)
     else
-      { success: false, equipment: equipment, error: :validation_failed, message: equipment.errors.full_messages.join(", ") }
+      ServiceResult.err(error: :validation_failed, message: equipment.errors.full_messages.join(", "), equipment: equipment)
     end
   end
 
   # @param equipment [Equipment]
   # @param params [Hash]
-  # @return [Hash]
+  # @return [ServiceResult]
   def update(equipment:, params:)
     if equipment.update(params)
-      { success: true, equipment: equipment }
+      ServiceResult.ok(equipment: equipment)
     else
-      { success: false, equipment: equipment, error: :validation_failed, message: equipment.errors.full_messages.join(", ") }
+      ServiceResult.err(error: :validation_failed, message: equipment.errors.full_messages.join(", "), equipment: equipment)
     end
   end
 
   # @param equipment [Equipment]
-  # @return [Hash]
+  # @return [ServiceResult]
   def destroy(equipment:)
-    if equipment.loans.where(status: [ :active, :overdue ]).exists?
-      return { success: false, error: :has_active_loans, message: "貸出中のため削除できません" }
+    if equipment.loans.active_or_overdue.exists?
+      return ServiceResult.err(error: :has_active_loans, message: "貸出中のため削除できません")
     end
 
     equipment.discard
-    { success: true }
+    ServiceResult.ok
   end
 end

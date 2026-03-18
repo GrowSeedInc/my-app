@@ -14,10 +14,12 @@ RSpec.describe "Admin::Dashboard", type: :request do
       end
 
       it "カテゴリ別サマリーを表示する" do
-        category = create(:category, name: "テストカテゴリ")
-        create(:equipment, category: category, total_count: 5, available_count: 3)
+        major    = create(:category, name: "テスト大分類")
+        medium   = create(:category, :medium, name: "テスト中分類", parent: major)
+        minor    = create(:category, :minor,  name: "テスト小分類", parent: medium)
+        create(:equipment, category: minor, total_count: 5, available_count: 3)
         get admin_dashboard_path
-        expect(response.body).to include("テストカテゴリ")
+        expect(response.body).to include("テスト大分類")
       end
 
       it "延滞中の貸出を表示する" do

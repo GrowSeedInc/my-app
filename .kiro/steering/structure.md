@@ -19,6 +19,7 @@ Rails 標準のレイヤードアーキテクチャをベースに、**Service O
 - 命名: `XxxService`（対象ドメイン + Service）
 - 戻り値: `{ success: Boolean, record: T, error: Symbol, message: String }`
 - DB操作はトランザクション内で行い、排他ロックが必要な場合は `with_lock` を使用
+- CSV 関連は `CsvExportService` / `CsvImportService` に分離。エクスポートは UTF-8 BOM 付き文字列を返し、インポートはバリデーションエラーを行番号付きで返す
 
 ### Policies（`app/policies/`）
 **目的**: Pundit による action 単位の認可定義。
@@ -33,6 +34,7 @@ Rails 標準のレイヤードアーキテクチャをベースに、**Service O
 - 管理者専用機能は `admin/` サブディレクトリに名前空間化（`namespace :admin`）
   - 例: `Admin::DashboardsController`、`Admin::CategoriesController`、`Admin::LoansController`、`Admin::UsersController`
 - すべての認証は `ApplicationController` の `before_action :authenticate_user!` に集約
+- 初回セットアップ専用コントローラ `SetupsController`（`/setup`）: ユーザー0人時のみ動作し、認証・リダイレクトガードをスキップして最初の管理者を作成する
 
 ### Jobs（`app/jobs/`）
 **目的**: 非同期・定期処理。`ApplicationJob` 継承。

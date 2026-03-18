@@ -1,0 +1,148 @@
+<% content_for :title, "カテゴリー管理" %>
+
+<div>
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="text-xl font-semibold text-gray-800">カテゴリー管理</h1>
+    <div class="flex gap-2">
+      <% if policy(Category).export_csv? %>
+        <%= link_to "CSV ダウンロード", export_csv_admin_category_majors_path,
+              class: "bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-2 rounded-md transition-colors" %>
+      <% end %>
+      <%= link_to "＋ 大分類を追加", new_admin_category_major_path,
+            class: "bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-md transition-colors" %>
+    </div>
+  </div>
+
+  <%# インポートエラー表示 %>
+  <%= render "shared/csv_import_errors" %>
+
+  <%# CSV インポート %>
+  <% if policy(Category).import_csv? %>
+    <div class="bg-white border border-gray-200 rounded-lg p-4" style="margin-bottom: 1.5rem;">
+      <h3 class="text-sm font-semibold text-gray-700 mb-2">カテゴリ CSV インポート（大分類名・中分類名・小分類名）</h3>
+      <%= form_with url: import_csv_admin_category_majors_path, method: :post, multipart: true do |f| %>
+        <div class="flex items-center gap-3">
+          <%= f.file_field :file, accept: ".csv", id: "category_csv_file", class: "hidden",
+                onchange: "document.getElementById('category_csv_name').textContent = this.files[0]?.name || '選択されていません'" %>
+          <label for="category_csv_file"
+                 class="cursor-pointer bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-1.5 rounded-md transition-colors">
+            CSV を選択
+          </label>
+          <span id="category_csv_name" class="text-sm text-gray-500 truncate max-w-xs">選択されていません</span>
+          <%= f.submit "インポート", class: "bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-4 py-1.5 rounded-md cursor-pointer transition-colors" %>
+        </div>
+      <% end %>
+      <p class="text-xs text-gray-400 mt-1.5">
+        CSVファイル（5MB以下）
+        <%= link_to "テンプレートをダウンロード", import_template_admin_category_majors_path, class: "text-blue-600 hover:text-blue-800" %>
+      </p>
+    </div>
+  <% end %>
+
+  <%# ツリービュー %>
+  <% if @majors.empty? %>
+    <div class="bg-white border border-gray-200 rounded-lg px-4 py-12 text-center text-sm text-gray-400 mt-4">
+      大分類が登録されていません
+    </div>
+  <% else %>
+    <div class="border border-gray-200 rounded-lg overflow-hidden font-mono text-sm">
+      <% @majors.each_with_index do |major, major_idx| %>
+
+        <%# 大分類 + 配下をひとまとめにして Stimulus コントローラーで管理 %>
+        <div data-controller="category-tree"
+             style="<%= major_idx > 0 ? 'border-top: 1px solid #bfdbfe;' : '' %>">
+
+          <%# 大分類行 — ブルー背景 %>
+          <div class="flex items-center justify-between px-4 py-2.5 group"
+               style="background-color: #dbeafe;">
+            <div class="flex items-center gap-2">
+              <button type="button"
+                      data-category-tree-target="arrow"
+                      data-action="click->category-tree#toggle"
+                      class="select-none text-xs focus:outline-none"
+                      style="color: #3b82f6; background: none; border: none; cursor: pointer; padding: 0; width: 1rem;">▼</button>
+              <span class="font-semibold" style="color: #1e3a8a;"><%= major.name %></span>
+              <span class="text-xs ml-1">
+                <span class="px-1.5 py-0.5 rounded-full" style="background-color: #bfdbfe; color: #1d4ed8;">中 <%= major.children.size %></span>
+                <span class="px-1.5 py-0.5 rounded-full ml-1" style="background-color: #bfdbfe; color: #1d4ed8;">小 <%= major.children.sum { |m| m.children.size } %></span>
+              </span>
+            </div>
+            <div class="flex items-center gap-3 text-xs">
+              <%= link_to "＋ 中分類", new_admin_category_medium_path(parent_id: major.id),
+                    class: "font-medium transition-colors", style: "color: #16a34a;" %>
+              <span style="color: #93c5fd;">|</span>
+              <%= link_to "編集", edit_admin_category_major_path(major),
+                    class: "transition-colors", style: "color: #2563eb;" %>
+              <span style="color: #93c5fd;">|</span>
+              <%= button_to "削除", admin_category_major_path(major), method: :delete,
+                    data: { turbo_confirm: "「#{major.name}」を削除しますか？配下の中分類・小分類も削除できません（子が存在する場合）。" },
+                    class: "bg-transparent border-0 cursor-pointer font-medium transition-colors", style: "color: #dc2626;" %>
+            </div>
+          </div>
+
+          <%# 中分類・小分類（トグル対象） %>
+          <div data-category-tree-target="children">
+            <% if major.children.any? %>
+              <% major.children.each_with_index do |medium, med_idx| %>
+                <% is_last_medium = (med_idx == major.children.size - 1) %>
+
+                <%# 中分類行 — インディゴ左ボーダー %>
+                <div class="flex items-center justify-between px-4 py-2 group transition-colors"
+                     style="background-color: #eff6ff; border-top: 1px solid #dbeafe; border-left: 3px solid #6366f1;">
+                  <div class="flex items-center gap-2">
+                    <span class="select-none" style="color: #93c5fd; width: 1.5rem;">
+                      <%= is_last_medium ? '└─' : '├─' %>
+                    </span>
+                    <span class="font-medium" style="color: #1e3a5f;"><%= medium.name %></span>
+                    <span class="text-xs px-1.5 py-0.5 rounded-full" style="background-color: #e0e7ff; color: #6366f1;">小 <%= medium.children.size %></span>
+                  </div>
+                  <div class="flex items-center gap-3 text-xs">
+                    <%= link_to "＋ 小分類", new_admin_category_minor_path(parent_id: medium.id),
+                          class: "text-emerald-600 hover:text-emerald-800 font-medium transition-colors" %>
+                    <span class="text-gray-300">|</span>
+                    <%= link_to "編集", edit_admin_category_medium_path(medium),
+                          class: "text-blue-600 hover:text-blue-800 transition-colors" %>
+                    <span class="text-gray-300">|</span>
+                    <%= button_to "削除", admin_category_medium_path(medium), method: :delete,
+                          data: { turbo_confirm: "「#{medium.name}」を削除しますか？" },
+                          class: "text-red-500 hover:text-red-700 bg-transparent border-0 cursor-pointer font-medium transition-colors" %>
+                  </div>
+                </div>
+
+                <%# 小分類行 — 紫の左ボーダー %>
+                <% medium.children.each_with_index do |minor, min_idx| %>
+                  <% is_last_minor = (min_idx == medium.children.size - 1) %>
+                  <div class="flex items-center justify-between px-4 py-1.5 group transition-colors"
+                       style="background-color: #faf5ff; border-top: 1px solid #ede9fe; border-left: 3px solid #a855f7;">
+                    <div class="flex items-center gap-2">
+                      <span class="select-none" style="color: #c4b5fd; width: 1.5rem;"></span>
+                      <span class="select-none" style="color: #c4b5fd; width: 1.5rem;">
+                        <%= is_last_minor ? '└─' : '├─' %>
+                      </span>
+                      <span style="color: #3b1f6e;"><%= minor.name %></span>
+                    </div>
+                    <div class="flex items-center gap-3 text-xs">
+                      <%= link_to "編集", edit_admin_category_minor_path(minor),
+                            class: "text-blue-600 hover:text-blue-800 transition-colors" %>
+                      <span class="text-gray-300">|</span>
+                      <%= button_to "削除", admin_category_minor_path(minor), method: :delete,
+                            data: { turbo_confirm: "「#{minor.name}」を削除しますか？" },
+                            class: "text-red-500 hover:text-red-700 bg-transparent border-0 cursor-pointer font-medium transition-colors" %>
+                    </div>
+                  </div>
+                <% end %>
+              <% end %>
+            <% else %>
+              <div class="px-4 py-2.5" style="background-color: #f8fafc; border-top: 1px solid #e2e8f0; border-left: 3px solid #cbd5e1;">
+                <span style="color: #cbd5e1;" class="select-none">└─</span>
+                <span class="text-xs text-gray-400 italic ml-2">中分類が登録されていません</span>
+              </div>
+            <% end %>
+          </div>
+
+        </div><%# end data-controller="category-tree" %>
+
+      <% end %>
+    </div>
+  <% end %>
+</div>

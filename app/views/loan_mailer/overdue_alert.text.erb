@@ -5,7 +5,7 @@
 備品名：<%= @equipment.name %>
 管理番号：<%= @equipment.management_number %>
 借用者：<%= @user.name.presence || @user.email %>
-返却予定日：<%= @loan.expected_return_date.strftime("%Y/%m/%d") %>
+返却予定日：<%= format_date(@loan.expected_return_date) %>
 延滞日数：<%= (Date.today - @loan.expected_return_date).to_i %> 日
 
 該当ユーザーへ返却を促してください。

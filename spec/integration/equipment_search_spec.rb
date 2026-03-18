@@ -4,8 +4,8 @@ require "rails_helper"
 RSpec.describe "備品検索・一覧表示", type: :request do
   let(:admin)  { create(:user, :admin) }
   let(:member) { create(:user) }
-  let(:category_a) { create(:category, name: "PCカテゴリ") }
-  let(:category_b) { create(:category, name: "家具カテゴリ") }
+  let(:category_a) { create(:category, :minor, name: "PCカテゴリ") }
+  let(:category_b) { create(:category, :minor, name: "家具カテゴリ") }
 
   before { sign_in member }
 
@@ -34,7 +34,7 @@ RSpec.describe "備品検索・一覧表示", type: :request do
     let!(:no_cat)  { create(:equipment, name: "カテゴリなし", management_number: "NOC-001", category: nil) }
 
     it "カテゴリで絞り込みできる" do
-      get equipments_path, params: { category_id: category_a.id }
+      get equipments_path, params: { category_minor_id: category_a.id }
       expect(response.body).to include("ノートPC")
       expect(response.body).not_to include("椅子")
     end
@@ -78,14 +78,16 @@ RSpec.describe "備品検索・一覧表示", type: :request do
     before { sign_out member; sign_in admin }
 
     it "カテゴリ別の在庫数が正確に表示される" do
-      category = create(:category, name: "精度テストカテゴリ")
-      eq1 = create(:equipment, name: "備品A", management_number: "ACC-001",
-                   category: category, total_count: 5, available_count: 3)
-      eq2 = create(:equipment, name: "備品B", management_number: "ACC-002",
-                   category: category, total_count: 3, available_count: 3)
+      major    = create(:category, name: "精度テスト大分類")
+      medium   = create(:category, :medium, name: "精度テスト中分類", parent: major)
+      minor    = create(:category, :minor,  name: "精度テスト小分類", parent: medium)
+      create(:equipment, name: "備品A", management_number: "ACC-001",
+             category: minor, total_count: 5, available_count: 3)
+      create(:equipment, name: "備品B", management_number: "ACC-002",
+             category: minor, total_count: 3, available_count: 3)
 
       get admin_dashboard_path
-      expect(response.body).to include("精度テストカテゴリ")
+      expect(response.body).to include("精度テスト大分類")
       # 総数 5+3=8、利用可能 3+3=6
       expect(response.body).to include("8")
       expect(response.body).to include("6")

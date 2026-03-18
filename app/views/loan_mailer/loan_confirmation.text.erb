@@ -6,7 +6,7 @@
 
 備品名：<%= @equipment.name %>
 管理番号：<%= @equipment.management_number %>
-貸出開始日：<%= @loan.start_date.strftime("%Y/%m/%d") %>
-返却予定日：<%= @loan.expected_return_date.strftime("%Y/%m/%d") %>
+貸出開始日：<%= format_date(@loan.start_date) %>
+返却予定日：<%= format_date(@loan.expected_return_date) %>
 
 ご不明な点がございましたら、管理者までお問い合わせください。

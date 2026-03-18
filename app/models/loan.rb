@@ -1,4 +1,6 @@
 class Loan < ApplicationRecord
+  RETURNABLE_STATUSES = %w[active overdue].freeze
+
   belongs_to :equipment
   belongs_to :user
 
@@ -8,6 +10,11 @@ class Loan < ApplicationRecord
     returned: "returned",
     overdue: "overdue"
   }
+
+  scope :active_or_overdue, -> { where(status: %i[active overdue]) }
+  scope :pending,           -> { where(status: :pending_approval) }
+  scope :by_equipment,      ->(equipment_id) { where(equipment_id: equipment_id) }
+  scope :by_user,           ->(user_id) { where(user_id: user_id) }
 
   validates :start_date, presence: true
   validates :expected_return_date, presence: true

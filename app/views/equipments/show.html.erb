@@ -62,11 +62,11 @@
       </div>
       <div class="px-5 py-3 grid grid-cols-3 gap-4">
         <dt class="text-sm font-medium text-gray-500">登録日時</dt>
-        <dd class="text-sm text-gray-500 col-span-2"><%= @equipment.created_at.strftime("%Y年%m月%d日 %H:%M") %></dd>
+        <dd class="text-sm text-gray-500 col-span-2"><%= format_datetime(@equipment.created_at) %></dd>
       </div>
       <div class="px-5 py-3 grid grid-cols-3 gap-4">
         <dt class="text-sm font-medium text-gray-500">更新日時</dt>
-        <dd class="text-sm text-gray-500 col-span-2"><%= @equipment.updated_at.strftime("%Y年%m月%d日 %H:%M") %></dd>
+        <dd class="text-sm text-gray-500 col-span-2"><%= format_datetime(@equipment.updated_at) %></dd>
       </div>
     </dl>
   </div>

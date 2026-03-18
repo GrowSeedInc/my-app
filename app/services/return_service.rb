@@ -1,19 +1,16 @@
 class ReturnService
-  RETURNABLE_STATUSES = %w[active overdue].freeze
-
   # @param loan_id [String]
   # @param actor [User]
-  # @return [Hash] { success: Boolean, loan: Loan, error: Symbol, message: String }
+  # @return [ServiceResult]
   def process_return(loan_id:, actor:)
     loan = Loan.find(loan_id)
 
-    unless RETURNABLE_STATUSES.include?(loan.status)
-      return {
-        success: false,
-        loan: loan,
+    unless Loan::RETURNABLE_STATUSES.include?(loan.status)
+      return ServiceResult.err(
         error: :invalid_status,
-        message: "貸出中または延滞中の貸出のみ返却処理できません"
-      }
+        message: "貸出中または延滞中の貸出のみ返却処理できます",
+        loan: loan
+      )
     end
 
     ActiveRecord::Base.transaction do
@@ -21,6 +18,6 @@ class ReturnService
       loan.equipment.increment!(:available_count)
     end
 
-    { success: true, loan: loan }
+    ServiceResult.ok(loan: loan)
   end
 end

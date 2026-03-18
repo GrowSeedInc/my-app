@@ -37,8 +37,8 @@ class SearchService
 
   # 備品を検索・フィルタ・ソートしてページネーション結果を返す
   # @return [SearchResult]
-  def search_equipments(keyword: nil, category_id: nil, status: nil, sort: nil, page: 1)
-    scope = Equipment.kept.eager_load(:category)
+  def search_equipments(keyword: nil, category_major_id: nil, category_medium_id: nil, category_minor_id: nil, status: nil, sort: nil, page: 1)
+    scope = Equipment.kept.eager_load(category: { parent: :parent })
 
     if keyword.present?
       pattern = "%#{keyword}%"
@@ -48,7 +48,14 @@ class SearchService
       )
     end
 
-    scope = scope.where(category_id: category_id) if category_id.present?
+    if category_minor_id.present?
+      scope = scope.where(category_id: category_minor_id)
+    elsif category_medium_id.present?
+      scope = scope.where(category_id: Category.minors_under_medium(category_medium_id))
+    elsif category_major_id.present?
+      scope = scope.where(category_id: Category.minors_under_major(category_major_id))
+    end
+
     scope = scope.where(status: status) if status.present?
 
     order_clause = EQUIPMENT_SORT_MAP[sort] || "equipments.created_at DESC"

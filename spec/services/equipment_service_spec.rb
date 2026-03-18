@@ -2,7 +2,7 @@ require "rails_helper"
 
 RSpec.describe EquipmentService do
   let(:service) { described_class.new }
-  let(:category) { create(:category) }
+  let(:category) { create(:category, :minor) }
 
   describe "#create" do
     context "有効なパラメータの場合" do

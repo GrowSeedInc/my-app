@@ -16,27 +16,7 @@
   </div>
 
   <%# インポートエラー表示 %>
-  <% if flash[:import_errors].present? %>
-    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-      <h3 class="text-sm font-semibold text-red-800 mb-2">インポートエラー（全件ロールバック済み）</h3>
-      <table class="min-w-full text-xs">
-        <thead>
-          <tr class="text-left text-red-700">
-            <th class="pr-4 pb-1 font-medium">行番号</th>
-            <th class="pb-1 font-medium">エラー内容</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% flash[:import_errors].each do |err| %>
-            <tr class="border-t border-red-100">
-              <td class="pr-4 py-1 text-red-600"><%= err["row"] %>行目</td>
-              <td class="py-1 text-red-700"><%= err["message"] %></td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-    </div>
-  <% end %>
+  <%= render "shared/csv_import_errors" %>
 
   <%# 管理者向け CSV インポート %>
   <% if policy(Equipment).import_csv? %>
@@ -63,18 +43,11 @@
 
   <%# 検索・フィルタフォーム %>
   <%= form_with url: equipments_path, method: :get, class: "bg-white border border-gray-200 rounded-lg p-4 mb-4" do |f| %>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+    <div class="grid grid-cols-3 gap-3">
       <div>
         <%= f.label :keyword, "キーワード", class: "block text-xs font-medium text-gray-600 mb-1" %>
         <%= f.text_field :keyword, value: params[:keyword],
               placeholder: "備品名・管理番号・説明",
-              class: "w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
-      </div>
-      <div>
-        <%= f.label :category_id, "カテゴリ", class: "block text-xs font-medium text-gray-600 mb-1" %>
-        <%= f.select :category_id,
-              options_from_collection_for_select(@categories, :id, :name, params[:category_id]),
-              { include_blank: "すべて" },
               class: "w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
       </div>
       <div>
@@ -98,6 +71,40 @@
               ],
               { selected: params[:sort] },
               class: "w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+      </div>
+    </div>
+    <div class="mt-3 grid grid-cols-3 gap-3"
+         data-controller="category-select"
+         data-category-select-mediums-url-value="<%= by_major_admin_category_mediums_path %>"
+         data-category-select-minors-url-value="<%= by_medium_admin_category_minors_path %>"
+         data-category-select-mode-value="search"
+         data-category-select-selected-major-value="<%= params[:category_major_id] %>"
+         data-category-select-selected-medium-value="<%= params[:category_medium_id] %>"
+         data-category-select-selected-minor-value="<%= params[:category_minor_id] %>">
+      <div>
+        <label class="block text-xs font-medium text-gray-600 mb-1">大分類</label>
+        <%= select_tag :category_major_id,
+              options_from_collection_for_select(@category_majors, :id, :name, params[:category_major_id]),
+              include_blank: "すべて",
+              class: "w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+              data: { category_select_target: "major", action: "change->category-select#majorChange" } %>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-600 mb-1">中分類</label>
+        <select name="category_medium_id"
+                data-category-select-target="medium"
+                data-action="change->category-select#mediumChange"
+                class="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <option value="">すべて</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-600 mb-1">小分類</label>
+        <select name="category_minor_id"
+                data-category-select-target="minor"
+                class="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <option value="">すべて</option>
+        </select>
       </div>
     </div>
     <div class="mt-3 flex gap-2">
@@ -138,7 +145,9 @@
                 <span class="ml-1 text-xs text-blue-600 font-normal">（貸出中）</span>
               <% end %>
             </td>
-            <td class="px-4 py-3 text-sm text-gray-500 whitespace-nowrap"><%= equipment.category&.name || "—" %></td>
+            <td class="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
+              <%= equipment_category_path(equipment) %>
+            </td>
             <td class="px-4 py-3 text-sm text-gray-600 text-center whitespace-nowrap"><%= equipment.total_count %></td>
             <td class="px-4 py-3 text-sm text-center whitespace-nowrap">
               <% over_loaned = current_user.admin? && (@active_loans_by_equipment[equipment.id] || []).size > equipment.total_count %>

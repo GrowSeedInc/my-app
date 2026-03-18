@@ -93,6 +93,30 @@ RSpec.describe "Equipments", type: :request do
         get edit_equipment_path(equipment)
         expect(response).to have_http_status(:ok)
       end
+
+      context "備品に小分類カテゴリが設定されている場合" do
+        let!(:major)  { create(:category) }
+        let!(:medium) { create(:category, :medium, parent: major) }
+        let!(:minor)  { create(:category, :minor, parent: medium) }
+        let!(:eq_with_cat) { create(:equipment, category: minor) }
+
+        it "@category_minor/@category_medium/@category_majorが設定される" do
+          get edit_equipment_path(eq_with_cat)
+          expect(response).to have_http_status(:ok)
+          expect(controller.instance_variable_get(:@category_minor)).to eq(minor)
+          expect(controller.instance_variable_get(:@category_medium)).to eq(medium)
+          expect(controller.instance_variable_get(:@category_major)).to eq(major)
+        end
+      end
+
+      context "備品にカテゴリが設定されていない場合" do
+        it "@category_minor/@category_medium/@category_majorがnilになる" do
+          get edit_equipment_path(equipment)
+          expect(controller.instance_variable_get(:@category_minor)).to be_nil
+          expect(controller.instance_variable_get(:@category_medium)).to be_nil
+          expect(controller.instance_variable_get(:@category_major)).to be_nil
+        end
+      end
     end
 
     context "一般ユーザーの場合" do

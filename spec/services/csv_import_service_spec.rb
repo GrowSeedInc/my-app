@@ -39,13 +39,16 @@ RSpec.describe CsvImportService do
   # ─── import_categories ──────────────────────────────────────────────────────
 
   describe "#import_categories" do
-    context "正常データ" do
+    context "正常データ（3カラム）" do
       let(:content) do
-        csv_content(%w[カテゴリ名], [["PC機器"], ["ネットワーク機器"]])
+        csv_content(%w[大分類名 中分類名 小分類名], [
+          ["PC機器", "ノートPC類", "ThinkPad"],
+          ["ネットワーク機器", "スイッチ類", "L2スイッチ"]
+        ])
       end
 
-      it "カテゴリを登録する" do
-        expect { service.import_categories(mock_file(content)) }.to change(Category, :count).by(2)
+      it "大分類・中分類・小分類の3階層を登録する" do
+        expect { service.import_categories(mock_file(content)) }.to change(Category, :count).by(6)
       end
 
       it "success: true を返す" do
@@ -54,10 +57,41 @@ RSpec.describe CsvImportService do
         expect(result[:count]).to eq 2
         expect(result[:errors]).to be_empty
       end
+
+      it "大分類を major レベルで登録する" do
+        service.import_categories(mock_file(content))
+        expect(Category.major.find_by(name: "PC機器")).to be_present
+      end
+
+      it "小分類を正しい親に紐付けて登録する" do
+        service.import_categories(mock_file(content))
+        major  = Category.major.find_by(name: "PC機器")
+        medium = Category.medium.find_by(name: "ノートPC類", parent_id: major.id)
+        minor  = Category.minor.find_by(name: "ThinkPad", parent_id: medium.id)
+        expect(minor).to be_present
+      end
     end
 
-    context "カテゴリ名が空の場合" do
-      let(:content) { csv_content(%w[カテゴリ名], [[" "]]) }
+    context "既存カテゴリと重複している場合（idempotent）" do
+      let!(:existing_major)  { create(:category, name: "PC機器") }
+      let!(:existing_medium) { create(:category, :medium, name: "ノートPC類", parent: existing_major) }
+      let!(:existing_minor)  { create(:category, :minor, name: "ThinkPad", parent: existing_medium) }
+      let(:content) do
+        csv_content(%w[大分類名 中分類名 小分類名], [["PC機器", "ノートPC類", "ThinkPad"]])
+      end
+
+      it "エラーなく成功する（find_or_create）" do
+        result = service.import_categories(mock_file(content))
+        expect(result[:success]).to be true
+      end
+
+      it "新たなカテゴリを作成しない" do
+        expect { service.import_categories(mock_file(content)) }.not_to change(Category, :count)
+      end
+    end
+
+    context "中分類名が空の場合" do
+      let(:content) { csv_content(%w[大分類名 中分類名 小分類名], [["PC機器", "", "ThinkPad"]]) }
 
       it "success: false を返す" do
         expect(service.import_categories(mock_file(content))[:success]).to be false
@@ -68,23 +102,23 @@ RSpec.describe CsvImportService do
       end
     end
 
-    context "CSV 内でカテゴリ名が重複している場合" do
-      let(:content) { csv_content(%w[カテゴリ名], [["PC機器"], ["PC機器"]]) }
+    context "小分類名が空の場合" do
+      let(:content) { csv_content(%w[大分類名 中分類名 小分類名], [["PC機器", "ノートPC類", ""]]) }
 
-      it "エラーを返して全ロールバックする" do
-        result = service.import_categories(mock_file(content))
-        expect(result[:success]).to be false
-        expect(result[:errors]).not_to be_empty
-        expect(Category.count).to eq 0
+      it "success: false を返す" do
+        expect(service.import_categories(mock_file(content))[:success]).to be false
+      end
+
+      it "カテゴリを登録しない" do
+        expect { service.import_categories(mock_file(content)) }.not_to change(Category, :count)
       end
     end
 
-    context "既存のカテゴリ名と重複している場合" do
-      before { create(:category, name: "PC機器") }
-      let(:content) { csv_content(%w[カテゴリ名], [["PC機器"], ["新カテゴリ"]]) }
+    context "大分類名が空の場合" do
+      let(:content) { csv_content(%w[大分類名 中分類名 小分類名], [["", "ノートPC類", "ThinkPad"]]) }
 
-      it "全件ロールバックする" do
-        expect { service.import_categories(mock_file(content)) }.not_to change(Category, :count)
+      it "success: false を返す" do
+        expect(service.import_categories(mock_file(content))[:success]).to be false
       end
     end
   end
@@ -178,14 +212,16 @@ RSpec.describe CsvImportService do
   # ─── import_equipments ──────────────────────────────────────────────────────
 
   describe "#import_equipments" do
-    let!(:category) { create(:category, name: "PC機器") }
+    let!(:major)    { create(:category, name: "PC機器") }
+    let!(:medium)   { create(:category, :medium, name: "ノートPC類", parent: major) }
+    let!(:category) { create(:category, :minor, name: "ThinkPad", parent: medium) }
 
     context "正常データ" do
       let(:content) do
         csv_content(
-          %w[備品名 管理番号 カテゴリ名 ステータス 総数 在庫警告閾値 説明],
-          [["ノートPC", "EQ-001", "PC機器", "available", "5", "2", "テスト用PC"],
-           ["プロジェクター", "EQ-002", "", "available", "3", "1", ""]]
+          %w[備品名 管理番号 大分類名 中分類名 小分類名 ステータス 総数 在庫警告閾値 説明],
+          [["ノートPC", "EQ-001", "PC機器", "ノートPC類", "ThinkPad", "available", "5", "2", "テスト用PC"],
+           ["プロジェクター", "EQ-002", "", "", "", "available", "3", "1", ""]]
         )
       end
 
@@ -210,17 +246,17 @@ RSpec.describe CsvImportService do
         expect(Equipment.find_by(management_number: "EQ-001").category).to eq category
       end
 
-      it "カテゴリ名が空の場合 nil で登録する" do
+      it "カテゴリ列が全て空の場合 nil で登録する" do
         service.import_equipments(mock_file(content))
         expect(Equipment.find_by(management_number: "EQ-002").category).to be_nil
       end
     end
 
-    context "カテゴリ名が存在しない場合" do
+    context "小分類が存在しない場合" do
       let(:content) do
         csv_content(
-          %w[備品名 管理番号 カテゴリ名 ステータス 総数 在庫警告閾値 説明],
-          [["ノートPC", "EQ-001", "存在しないカテゴリ", "available", "5", "1", ""]]
+          %w[備品名 管理番号 大分類名 中分類名 小分類名 ステータス 総数 在庫警告閾値 説明],
+          [["ノートPC", "EQ-001", "PC機器", "ノートPC類", "存在しない小分類", "available", "5", "1", ""]]
         )
       end
 
@@ -235,8 +271,8 @@ RSpec.describe CsvImportService do
       before { create(:equipment, management_number: "EQ-001") }
       let(:content) do
         csv_content(
-          %w[備品名 管理番号 カテゴリ名 ステータス 総数 在庫警告閾値 説明],
-          [["ノートPC", "EQ-001", "", "available", "5", "1", ""]]
+          %w[備品名 管理番号 大分類名 中分類名 小分類名 ステータス 総数 在庫警告閾値 説明],
+          [["ノートPC", "EQ-001", "", "", "", "available", "5", "1", ""]]
         )
       end
 
@@ -248,9 +284,9 @@ RSpec.describe CsvImportService do
     context "CSV 内で管理番号が重複している場合" do
       let(:content) do
         csv_content(
-          %w[備品名 管理番号 カテゴリ名 ステータス 総数 在庫警告閾値 説明],
-          [["ノートPC", "EQ-001", "", "available", "5", "1", ""],
-           ["ノートPC2", "EQ-001", "", "available", "3", "1", ""]]
+          %w[備品名 管理番号 大分類名 中分類名 小分類名 ステータス 総数 在庫警告閾値 説明],
+          [["ノートPC", "EQ-001", "", "", "", "available", "5", "1", ""],
+           ["ノートPC2", "EQ-001", "", "", "", "available", "3", "1", ""]]
         )
       end
 
@@ -263,8 +299,8 @@ RSpec.describe CsvImportService do
     context "必須項目（備品名・管理番号・総数）が欠損している場合" do
       let(:content) do
         csv_content(
-          %w[備品名 管理番号 カテゴリ名 ステータス 総数 在庫警告閾値 説明],
-          [["", "EQ-001", "", "available", "", "1", ""]]
+          %w[備品名 管理番号 大分類名 中分類名 小分類名 ステータス 総数 在庫警告閾値 説明],
+          [["", "EQ-001", "", "", "", "available", "", "1", ""]]
         )
       end
 
@@ -278,8 +314,8 @@ RSpec.describe CsvImportService do
     context "不正なステータス値の場合" do
       let(:content) do
         csv_content(
-          %w[備品名 管理番号 カテゴリ名 ステータス 総数 在庫警告閾値 説明],
-          [["ノートPC", "EQ-001", "", "unknown_status", "5", "1", ""]]
+          %w[備品名 管理番号 大分類名 中分類名 小分類名 ステータス 総数 在庫警告閾値 説明],
+          [["ノートPC", "EQ-001", "", "", "", "unknown_status", "5", "1", ""]]
         )
       end
 
@@ -294,7 +330,7 @@ RSpec.describe CsvImportService do
   # ─── import_loans ───────────────────────────────────────────────────────────
 
   describe "#import_loans" do
-    let!(:category)  { create(:category, name: "PC機器") }
+    let!(:category)  { create(:category, :minor, name: "PC機器") }
     let!(:equipment) { create(:equipment, management_number: "EQ-001", total_count: 5, available_count: 5, category: category) }
     let!(:user)      { create(:user, email: "tanaka@example.com") }
 

@@ -1,4 +1,6 @@
 class Admin::UsersController < ApplicationController
+  include CsvImportable
+
   before_action :set_user, only: [ :edit, :update, :destroy ]
 
   def index
@@ -72,27 +74,13 @@ class Admin::UsersController < ApplicationController
 
   def import_csv
     authorize User, :import_csv?
+    return if validate_csv_upload(params[:file], admin_users_path)
 
-    file = params[:file]
-    unless file.present?
-      return redirect_to admin_users_path, alert: "ファイルを選択してください"
-    end
-    if file.size > 5.megabytes
-      return redirect_to admin_users_path, alert: "ファイルサイズは5MB以下にしてください"
-    end
-    unless CsvImportService.new.csv_file?(file)
-      return redirect_to admin_users_path, alert: "CSVファイルを選択してください"
-    end
-
-    result = CsvImportService.new.import_users(file)
-
-    if result[:success]
-      redirect_to admin_users_path,
-                  notice: "#{result[:message]}（初期パスワード: password123 — ユーザーに変更を促してください）"
-    else
-      flash[:import_errors] = result[:errors]
-      redirect_to admin_users_path, alert: result[:message]
-    end
+    result = CsvImportService.new.import_users(params[:file])
+    handle_csv_import_result(
+      result, admin_users_path,
+      success_notice: result[:success] ? "#{result[:message]}（初期パスワード: password123 — ユーザーに変更を促してください）" : nil
+    )
   rescue ArgumentError => e
     redirect_to admin_users_path, alert: e.message
   end

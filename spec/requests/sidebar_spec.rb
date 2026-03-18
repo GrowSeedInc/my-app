@@ -24,7 +24,7 @@ RSpec.describe "サイドバー HTML 出力", type: :request do
 
     it "管理者専用リンク（カテゴリ管理）が含まれない" do
       get equipments_path
-      expect(response.body).not_to include(admin_categories_path)
+      expect(response.body).not_to include(admin_category_majors_path)
     end
   end
 
@@ -43,7 +43,7 @@ RSpec.describe "サイドバー HTML 出力", type: :request do
 
     it "管理者専用リンク（カテゴリ管理）が含まれる" do
       get equipments_path
-      expect(response.body).to include(admin_categories_path)
+      expect(response.body).to include(admin_category_majors_path)
     end
   end
 

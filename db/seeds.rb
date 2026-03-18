@@ -29,14 +29,26 @@ end
 
 puts "== カテゴリ =="
 
+# 大分類
+major_it     = Category.find_or_create_by!(name: "IT機器",    level: :major, parent_id: nil)
+major_office = Category.find_or_create_by!(name: "オフィス備品", level: :major, parent_id: nil)
+
+# 中分類
+medium_pc       = Category.find_or_create_by!(name: "PC・周辺機器", level: :medium, parent_id: major_it.id)
+medium_mobile   = Category.find_or_create_by!(name: "モバイル機器",  level: :medium, parent_id: major_it.id)
+medium_av       = Category.find_or_create_by!(name: "AV機器",       level: :medium, parent_id: major_it.id)
+medium_furniture = Category.find_or_create_by!(name: "家具",          level: :medium, parent_id: major_office.id)
+medium_supply   = Category.find_or_create_by!(name: "文具・備品",    level: :medium, parent_id: major_office.id)
+
+# 小分類（備品が紐付く）
 categories = {
-  pc:       Category.find_or_create_by!(name: "PC・周辺機器"),
-  mobile:   Category.find_or_create_by!(name: "モバイル機器"),
-  av:       Category.find_or_create_by!(name: "AV機器"),
-  furniture: Category.find_or_create_by!(name: "家具"),
-  office:   Category.find_or_create_by!(name: "オフィス用品")
+  pc:        Category.find_or_create_by!(name: "ノートPC・モニター",        level: :minor, parent_id: medium_pc.id),
+  mobile:    Category.find_or_create_by!(name: "タブレット・スマートフォン", level: :minor, parent_id: medium_mobile.id),
+  av:        Category.find_or_create_by!(name: "プロジェクター・カメラ",    level: :minor, parent_id: medium_av.id),
+  furniture: Category.find_or_create_by!(name: "テーブル・椅子",            level: :minor, parent_id: medium_furniture.id),
+  office:    Category.find_or_create_by!(name: "ホワイトボード・電源",      level: :minor, parent_id: medium_supply.id)
 }
-categories.each { |_, c| puts "  #{c.name}" }
+categories.each { |_, c| puts "  #{c.parent.parent.name} > #{c.parent.name} > #{c.name}" }
 
 puts "== 備品 =="
 
