@@ -49,7 +49,7 @@ graph TB
     subgraph ExtendedControllers[拡張既存コントローラー]
         EC[EquipmentsController]
         LC[LoansController]
-        ACC[Admin CategoriesController]
+        ACC[Admin CategoryMajorsController]
         AUC[Admin UsersController]
         ALC[Admin LoansController]
     end
@@ -173,7 +173,7 @@ sequenceDiagram
 | 5 | 認可・アクセス制御 | 全 Policy（csv アクション拡張） | `export_csv?`, `import_csv?` |
 | 6 | ユーザー一覧 CSV エクスポート | `Admin::UsersController`, `CsvExportService`, `UserPolicy` | `export_users` |
 | 7 | 初期管理者作成画面 | `SetupsController` | `new`, `create` |
-| 8 | カテゴリ CSV エクスポート・インポート | `Admin::CategoriesController`, `CsvExportService`, `CsvImportService` | `export_categories`, `import_categories(file)` |
+| 8 | カテゴリ CSV エクスポート・インポート | `Admin::CategoryMajorsController`, `CsvExportService`, `CsvImportService` | `export_categories`, `import_categories(file)` |
 | 9 | ユーザー一括 CSV インポート | `Admin::UsersController`, `CsvImportService` | `import_users(file)` |
 | 10 | 移行順序保証と在庫再計算 | `CsvImportService`, `Admin::LoansController` | `recalculate_available_counts` |
 
@@ -193,6 +193,8 @@ sequenceDiagram
 | `CategoryPolicy` 拡張 | Policy | CSV エクスポート・インポートの認可 | 5 | 既存 ApplicationPolicy (P0) |
 | `UserPolicy` 拡張 | Policy | CSV エクスポート・インポートの認可 | 5 | 既存 ApplicationPolicy (P0) |
 | Route 拡張 | Routing | CSV アクション・setup エンドポイントの追加 | 全体 | — |
+
+> **注記**: カテゴリ CSV 機能は category-hierarchy スペックの実装により、`Admin::CategoriesController`（フラット）ではなく `Admin::CategoryMajorsController` に実装されています。
 
 ---
 
@@ -228,8 +230,8 @@ class CsvExportService
   # @return [String]
   def export_loans(loans)
 
-  # @param categories [ActiveRecord::Relation<Category>]
-  # @return [String]
+  # @param categories [ActiveRecord::Relation<Category>] 小分類（level: :minor）を入力とする
+  # @return [String] ヘッダー: 大分類名 / 中分類名 / 小分類名
   def export_categories(categories)
 
   # @param users [ActiveRecord::Relation<User>]
@@ -348,7 +350,7 @@ end
 |--------------|-------------|-------------|
 | `EquipmentsController` | `export_csv` (GET collection), `import_csv` (POST collection), `import_template` (GET collection) | `authorize Equipment, :export_csv?` / `:import_csv?` |
 | `LoansController` | `export_csv` (GET collection) | `authorize Loan, :export_csv?` |
-| `Admin::CategoriesController` | `export_csv` (GET), `import_csv` (POST), `import_template` (GET) | `authorize Category, :export_csv?` / `:import_csv?` |
+| `Admin::CategoryMajorsController` | `export_csv` (GET), `import_csv` (POST), `import_template` (GET) | `authorize Category, :export_csv?` / `:import_csv?` |
 | `Admin::UsersController` | `export_csv` (GET), `import_csv` (POST), `import_template` (GET) | `authorize User, :export_csv?` / `:import_csv?` |
 | `Admin::LoansController` | `import_csv` (POST), `import_template` (GET) | `authorize Loan, :import_csv?` |
 
@@ -403,8 +405,15 @@ namespace :admin do
   resources :users do
     collection { get :export_csv; get :import_template; post :import_csv }
   end
-  resources :categories do
+  # カテゴリは category-hierarchy スペックにより3階層構成。CSV は大分類コントローラーに集約。
+  resources :category_majors do
     collection { get :export_csv; get :import_template; post :import_csv }
+  end
+  resources :category_mediums, except: [:index] do
+    collection { get :by_major }
+  end
+  resources :category_minors, except: [:index] do
+    collection { get :by_medium }
   end
   resources :loans, only: [:new, :create] do
     collection { get :import_template; post :import_csv }
@@ -453,9 +462,15 @@ post "/setup", to: "setups#create"
 
 #### カテゴリエクスポート / インポート CSV スキーマ
 
+> category-hierarchy スペックの実装により、3階層構造に対応したスキーマに変更されています。
+
 | カラム名 | 型 | 必須 | 備考 |
 |---------|-----|------|------|
-| `name` | String | ✅ | カテゴリ名（一意） |
+| `大分類名` | String | ✅ | 大分類カテゴリ名 |
+| `中分類名` | String | ✅ | 中分類カテゴリ名 |
+| `小分類名` | String | ✅ | 小分類カテゴリ名 |
+
+インポート時は `find_or_create_by!` で各階層を順に作成する（同名レコードが存在する場合は再利用）。エクスポート時は小分類（`level: :minor`）を起点に親をたどり3カラムを出力する。
 
 #### 貸出履歴エクスポート / インポート CSV スキーマ
 

@@ -283,6 +283,7 @@ Private（内部利用）:
 - Integration: `data-action="click@window->sidebar#handleWindowClick"` はラッパー `<div>` に付与することで window イベントをキャプチャする
 - Validation: `user_signed_in?` ガード・`current_user.admin?` 分岐は現行のまま保持し、条件分岐ロジックの変更は行わない
 - Risks: フラッシュメッセージのコンテナ位置が変わるため `max-w-7xl` 等のレイアウトクラスを引き継ぐことに注意する
+- カテゴリ管理リンクのアクティブ判定: category-hierarchy スペックにより 3 コントローラーに分割されたため、`controller_name == 'categories'` ではなく `controller_name.start_with?('category_') && controller.class.module_parent == Admin` で判定する。リンク先も `admin_categories_path` ではなく `admin_category_majors_path`。
 
 ---
 

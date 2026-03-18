@@ -430,11 +430,12 @@ end
 | Requirements | 2.1〜2.6, 3.3〜3.4, 6.1〜6.6 |
 
 **Responsibilities & Constraints**
-- `CategoryMajorsController`: 大分類 CRUD + CSV export/import (`export_csv`, `import_csv`, `import_template`)
-- `CategoryMediumsController`: 中分類 CRUD + `GET /by_major?major_id=xxx` → JSON `[{id:, name:}]`
-- `CategoryMinorsController`: 小分類 CRUD + `GET /by_medium?medium_id=xxx` → JSON `[{id:, name:}]`
+- `CategoryMajorsController`: 大分類 CRUD（index 含む） + CSV export/import (`export_csv`, `import_csv`, `import_template`)。`index` ページは大分類・中分類・小分類を3階層ツリービューとして一覧表示し、中分類・小分類の管理エントリポイントを兼ねる
+- `CategoryMediumsController`: 中分類 CRUD（**index は除く**）+ `GET /by_major?major_id=xxx` → JSON `[{id:, name:}]`。一覧は `CategoryMajorsController#index` のツリービューで代替するため独立した index アクション・ビューは実装しない
+- `CategoryMinorsController`: 小分類 CRUD（**index は除く**）+ `GET /by_medium?medium_id=xxx` → JSON `[{id:, name:}]`。一覧は同様にツリービューで代替するため独立した index アクション・ビューは実装しない
 - すべて Pundit `authorize Category` で認可
 - 既存 `Admin::CategoriesController` は削除し、ルートを新3コントローラに移行
+- ルーティング: `resources :category_mediums, except: [:index]` / `resources :category_minors, except: [:index]`
 
 ##### API Contract
 
@@ -444,7 +445,8 @@ end
 | GET | `/admin/category_minors?medium_id=:id` | query param | `[{id: UUID, name: String}]` | 200, 422 |
 
 **Implementation Notes**
-- Integration: `resources :category_majors`, `resources :category_mediums`, `resources :category_minors` をadmin名前空間内に追加
+- Integration: `resources :category_majors`, `resources :category_mediums, except: [:index]`, `resources :category_minors, except: [:index]` をadmin名前空間内に追加
+- 中分類・小分類の一覧ページは設けず、`admin_category_majors#index` のツリービュー（大→中→小を折り畳み表示）で代替する。これにより管理者は1画面で全階層を把握できる
 - Risks: 既存の `admin_categories_path` ヘルパー参照を全ビューで新パスに置換する必要がある
 
 ---
@@ -664,13 +666,13 @@ PC・周辺機器,デスクトップPC,iMac
 
 ### Integration Tests
 
-- `spec/requests/admin/category_majors_spec.rb` / `category_mediums_spec.rb` / `category_minors_spec.rb`: CRUD + JSON エンドポイント
+- `spec/requests/admin/category_majors_spec.rb` / `category_mediums_spec.rb` / `category_minors_spec.rb`: CRUD + JSON エンドポイント（index は `category_majors` のみテスト対象。`category_mediums` / `category_minors` に独立した index は存在しない）
 - `spec/integration/category_hierarchy_spec.rb`: 大→中→小の作成→備品登録→検索→削除フロー
 - マイグレーションテスト: 既存 categories データを使ったデータ移行の整合性検証
 
 ### E2E Tests
 
-- 備品フォームの3段階連動セレクト（Capybara + Selenium）
+- 備品フォームの3段階連動セレクト（Capybara + Selenium）— `spec/system/equipment_category_select_spec.rb`（未実装・保留）
 - 大分類フィルタで配下の全備品が表示されること
 
 ---
