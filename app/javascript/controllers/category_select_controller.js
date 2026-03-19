@@ -27,10 +27,7 @@ export default class extends Controller {
             if (this.selectedMinorValue) {
               this.minorTarget.value = this.selectedMinorValue
             }
-            this.updateSubmitState()
           })
-        } else {
-          this.updateSubmitState()
         }
       } else {
         this.fetchMediums(this.selectedMajorValue).then(() => {
@@ -41,18 +38,11 @@ export default class extends Controller {
                 if (this.selectedMinorValue) {
                   this.minorTarget.value = this.selectedMinorValue
                 }
-                this.updateSubmitState()
               })
-            } else {
-              this.updateSubmitState()
             }
-          } else {
-            this.updateSubmitState()
           }
         })
       }
-    } else {
-      this.updateSubmitState()
     }
   }
 
@@ -61,19 +51,17 @@ export default class extends Controller {
     this.clearSelect(this.mediumTarget, "中分類を選択")
     if (this.hasMinorTarget) this.clearSelect(this.minorTarget, "小分類を選択")
     if (majorId) {
-      this.fetchMediums(majorId).then(() => this.updateSubmitState())
-    } else {
-      this.updateSubmitState()
+      this.fetchMediums(majorId)
     }
   }
+
+  minorChange() {}
 
   mediumChange() {
     const mediumId = this.mediumTarget.value
     if (this.hasMinorTarget) this.clearSelect(this.minorTarget, "小分類を選択")
     if (mediumId && this.hasMinorTarget) {
-      this.fetchMinors(mediumId).then(() => this.updateSubmitState())
-    } else {
-      this.updateSubmitState()
+      this.fetchMinors(mediumId)
     }
   }
 
@@ -103,17 +91,5 @@ export default class extends Controller {
 
   clearSelect(selectEl, placeholder) {
     selectEl.innerHTML = `<option value="">${placeholder || "---"}</option>`
-  }
-
-  updateSubmitState() {
-    if (this.modeValue !== "form") return
-    const submitBtn = this.element.closest("form")?.querySelector("[type='submit']")
-    if (!submitBtn) return
-    if (!this.hasMinorTarget) return
-    const minorSelected = this.minorTarget.value !== ""
-    submitBtn.disabled = !minorSelected
-    submitBtn.classList.toggle("opacity-50", !minorSelected)
-    submitBtn.classList.toggle("cursor-not-allowed", !minorSelected)
-    submitBtn.classList.toggle("cursor-pointer", minorSelected)
   }
 }

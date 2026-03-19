@@ -55,7 +55,7 @@
             [],
             { include_blank: "小分類を選択" },
             class: "w-full border #{ equipment.errors[:category_id].any? ? 'border-red-400' : 'border-gray-300' } rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
-            data: { category_select_target: "minor" } %>
+            data: { category_select_target: "minor", action: "change->category-select#minorChange" } %>
       <% if equipment.errors[:category_id].any? %>
         <p class="mt-1 text-xs text-red-600"><%= equipment.errors[:category_id].first %></p>
       <% end %>
