@@ -41,7 +41,7 @@ gem "thruster", require: false
 gem "image_processing", "~> 1.2"
 
 # Authentication
-gem "devise"
+gem "devise", ">= 5.0.3"
 
 # Authorization
 gem "pundit"
